@@ -1,0 +1,17 @@
+.aiInsightsResponsive {
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  gap: 2rem;
+  padding: 2rem;
+}
+
+@media (max-width: 768px) {
+  .aiInsightsResponsive {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+  
+  .aiInsightsResponsive > div:last-child {
+    order: -1;
+  }
+} 

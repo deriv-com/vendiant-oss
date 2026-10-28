@@ -1,0 +1,6 @@
+# Multi-Model LLM Certification Checker Requirements
+openai>=1.66.0
+python-dotenv>=1.2.2
+
+# For OpenAI Responses API interactions with the web search tool
+# Set environment variable: OPENAI_API_KEY=your_openai_api_key

@@ -1,0 +1,40 @@
+# DNS Security Scanner Requirements
+# Python packages needed for comprehensive DNS security assessment
+
+# Core dependencies
+requests>=2.33.0
+dnspython>=2.4.0
+python-whois>=0.9.0
+psutil>=5.8.0
+
+# Date handling
+python-dateutil>=2.8.0
+
+# JSON handling (included in Python standard library, but ensuring compatibility)
+# json - standard library
+
+# DNS resolution and validation
+# socket - standard library
+# subprocess - standard library
+
+# Threading and concurrency
+# concurrent.futures - standard library
+# threading - standard library
+
+# System utilities
+# os - standard library
+# sys - standard library
+# time - standard library
+# datetime - standard library
+
+# Optional dependencies for enhanced functionality
+# sublist3r>=1.0  # For subdomain enumeration (already installed)
+
+# Note: The following tools should be installed via system package manager:
+# - dig (part of bind-utils or dnsutils)
+# - nslookup (part of bind-utils or dnsutils)
+# - whois (system whois command)
+#
+# macOS: brew install bind
+# Ubuntu/Debian: sudo apt-get install dnsutils whois
+# CentOS/RHEL: sudo yum install bind-utils whois 

@@ -1,0 +1,77 @@
+# Frontend directory (not needed for backend)
+frontend/
+
+# Log files
+*.log
+logs/
+custom_integrations/logs/
+flask_output.log
+
+# Python cache files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+
+# Virtual environments
+venv/
+env/
+ENV/
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Git files
+.git/
+.gitignore
+
+# Documentation files (optional, comment out if needed)
+*.md
+DASHBOARD_SETUP.md
+OVERALL_SCORE_UPDATE_SUMMARY.md
+
+# Temporary files
+*.tmp
+*.temp
+
+# Build artifacts
+build/
+dist/
+
+# Node.js files (in case any exist in backend)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Test files (if any)
+test/
+tests/
+*_test.py
+test_*.py
+
+# Coverage reports
+htmlcov/
+.coverage
+.coverage.*
+coverage.xml
+
+# Environment files (be careful with these)
+.env
+.env.local
+.env.*.local

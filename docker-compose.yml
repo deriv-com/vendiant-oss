@@ -1,0 +1,299 @@
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    pull_policy: missing
+    container_name: vendiant-postgres
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "5"
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 4G
+        reservations:
+          cpus: '0.25'
+          memory: 1G
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./Postgress/init-scripts/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+    expose:
+      - "5432"
+    networks:
+      - vendiant-network
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # FastAPI Backend
+  backend:
+    build:
+      context: .
+      dockerfile: Dashboard/Dockerfile
+      args:
+        BUILDKIT_INLINE_CACHE: "1"
+    image: vendiant-backend:latest
+    container_name: vendiant-backend
+    restart: unless-stopped
+    user: "1001:1001" # Run as vendiant user
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "5"
+    deploy:
+      resources:
+        limits:
+          cpus: '1.5'
+          memory: 6G
+        reservations:
+          cpus: '0.5'
+          memory: 2G
+    env_file:
+      - .env
+    environment:
+      # Database Configuration
+      DB_HOST: postgres
+      DB_PORT: ${DB_PORT}
+      DB_NAME: ${DB_NAME}
+      # Breach-monitor tables live in DB_NAME_BREACHES (defaults to the main DB)
+      DB_NAME_BREACHES: ${DB_NAME_BREACHES:-${DB_NAME}}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+
+      # LLM (any OpenAI-compatible endpoint)
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      OPENAI_BASE_URL: ${OPENAI_BASE_URL:-https://api.openai.com/v1}
+      OPENAI_MODEL_NAME: ${OPENAI_MODEL_NAME:-gpt-4o-mini}
+      ABUSE_API_KEY: ${ABUSE_API_KEY}
+
+      # Network scanning tool (see docs/NETWORK_SCANNING.md)
+      NETWORK_SCAN_PROVIDER: ${NETWORK_SCAN_PROVIDER:-socket}
+
+      # Breach monitoring platform (see docs/BREACH_MONITORING.md)
+      BREACH_MONITOR_BREACH_SEARCH_URL: ${BREACH_MONITOR_BREACH_SEARCH_URL:-}
+      BREACH_MONITOR_BOTNET_SEARCH_URL: ${BREACH_MONITOR_BOTNET_SEARCH_URL:-}
+      BREACH_MONITOR_USERNAME: ${BREACH_MONITOR_USERNAME:-}
+      BREACH_MONITOR_TOKEN: ${BREACH_MONITOR_TOKEN:-}
+      BREACH_MONITOR_APP_TOKEN: ${BREACH_MONITOR_APP_TOKEN:-}
+      BREACH_MONITOR_DOMAIN_GROUPS: ${BREACH_MONITOR_DOMAIN_GROUPS:-}
+      EMPLOYEE_EMAIL_DOMAINS: ${EMPLOYEE_EMAIL_DOMAINS:-}
+      DASHBOARD_FRONTEND_URL: ${NEXT_PUBLIC_BASE_URL:-http://localhost:8081}
+
+      # Single sign-on group that may use Access Management
+      SSO_GROUP_ADMIN: ${NEXT_PUBLIC_SSO_GROUP_ADMIN:-vendiant-admin}
+
+      # Browser origins allowed to call the backend
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:8081,http://localhost:3005}
+
+      # FastAPI Configuration
+      PYTHONPATH: /app
+    expose:
+      - "5005"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - vendiant-network
+    volumes:
+      - backend_results:/app/Results
+      - backend_logs:/app/custom_integrations/logs
+      - ./data:/app/data
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:5005/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Vendiant API Layer
+  vendiant_api:
+    build:
+      context: ./api_layer
+      dockerfile: Dockerfile
+      args:
+        BUILDKIT_INLINE_CACHE: "1"
+    image: vendiant-api:latest
+    container_name: vendiant_api
+    restart: unless-stopped
+    user: "1001:1001" # Run as appuser (matches Dockerfile)
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "5"
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 2G
+        reservations:
+          cpus: '0.25'
+          memory: 512M
+    ports:
+      - "5006:5006"
+    env_file:
+      - .env
+    environment:
+      # Database Configuration
+      DATABASE_URL: postgresql://${DB_USER}:${DB_PASSWORD}@postgres:5432/${DB_NAME}
+      DB_HOST: postgres
+      DB_PORT: ${DB_PORT}
+      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+
+      # Backend API Configuration
+      BACKEND_API_URL: http://backend:5005
+
+      # API Configuration
+      PYTHONPATH: /app
+      PYTHONENV: production
+
+      # CORS Configuration
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:8081}
+    expose:
+      - "5006"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      backend:
+        condition: service_healthy
+    networks:
+      - vendiant-network
+    volumes:
+      - api_logs:/app/logs
+    healthcheck:
+      test: [ "CMD-SHELL", "curl -f http://localhost:5006/vendiant/health || exit 1" ]
+      interval: 60s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # Next.js Frontend
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        BUILDKIT_INLINE_CACHE: "1"
+    image: vendiant-frontend:latest
+    container_name: vendiant-frontend
+    restart: unless-stopped
+    user: "1001:1001" # Run as nextjs user
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "5"
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 3G
+        reservations:
+          cpus: '0.25'
+          memory: 1G
+    environment:
+      NODE_ENV: production
+      NEXT_TELEMETRY_DISABLED: "1"
+      # Internal API URLs for container communication
+      INTERNAL_API_URL_PRODUCTION: http://backend:5005
+      BACKEND_URL: http://backend:5005
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-}
+      NEXT_PUBLIC_BASE_URL: ${NEXT_PUBLIC_BASE_URL:-http://localhost:8081}
+      # Single sign-on: JWT issued by your SSO / identity-aware proxy (docs/AUTHENTICATION.md)
+      SSO_JWT_HEADER: ${SSO_JWT_HEADER:-cf-access-jwt-assertion}
+      SSO_JWKS_URL: ${SSO_JWKS_URL:-}
+      SSO_ISSUER: ${SSO_ISSUER:-}
+      SSO_AUDIENCE: ${SSO_AUDIENCE:-}
+      SSO_GROUPS_CLAIM: ${SSO_GROUPS_CLAIM:-groups}
+      NEXT_PUBLIC_SSO_LOGOUT_URL: ${NEXT_PUBLIC_SSO_LOGOUT_URL:-}
+      ENABLE_MOCK_AUTH: ${ENABLE_MOCK_AUTH:-false}
+      CORS_ACCESS_CONTROL_ALLOW_ORIGIN: ${NEXT_PUBLIC_BASE_URL:-http://localhost:8081}
+    expose:
+      - "3005"
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - vendiant-network
+    volumes:
+      - frontend_logs:/app/.next/logs
+      - frontend_logs:/app/logs
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:3005/api/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+    security_opt:
+      - no-new-privileges:true
+    tmpfs:
+      - /tmp
+
+  nginx:
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
+      args:
+        BUILDKIT_INLINE_CACHE: "1"
+    image: vendiant-nginx:latest
+    container_name: vendiant-nginx
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "5"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.1'
+          memory: 128M
+    ports:
+      - "8081:80"
+    # The image runs nginx as a non-root user on port 80. Docker allows this by
+    # default; Podman needs the unprivileged port range opened explicitly.
+    sysctls:
+      net.ipv4.ip_unprivileged_port_start: 0
+    depends_on:
+      frontend:
+        condition: service_healthy
+    networks:
+      - vendiant-network
+    volumes:
+      # Mount for SSL certificates (when ready)
+      - nginx_ssl:/etc/nginx/ssl
+      # Mount for nginx logs
+      - nginx_logs:/var/log/nginx
+    healthcheck:
+      test: [ "CMD", "/usr/local/bin/health-check.sh" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  postgres_data:
+  backend_results:
+  backend_logs:
+  api_logs:
+  frontend_logs:
+  nginx_ssl:
+  nginx_logs:
+
+networks:
+  vendiant-network:
+    driver: bridge

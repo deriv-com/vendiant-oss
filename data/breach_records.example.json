@@ -1,0 +1,31 @@
+{
+  "data": {
+    "results": [
+      {
+        "type": "breach",
+        "validated": 1,
+        "information": {
+          "uid": "example-0001",
+          "email": "alice@example.com",
+          "username": "alice",
+          "domain": "example.com",
+          "password": 1,
+          "web_address": "https://forum.example.net",
+          "date": "2024-03-12"
+        },
+        "source": {
+          "name": "Example Forum dump 2024",
+          "description": "Credential dump published on a paste site.",
+          "confidence": "high",
+          "breach_type": "credential dump",
+          "source": "paste site",
+          "recommendations": "Force a password reset and enable MFA for the account.",
+          "score_attribution": 90,
+          "score_authentication": 85
+        }
+      }
+    ],
+    "query": { "pagination": { "total": 1, "count": 1, "page": 0 } },
+    "next_id": ""
+  }
+}
