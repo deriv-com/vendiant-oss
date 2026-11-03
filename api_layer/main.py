@@ -515,7 +515,8 @@ async def unhandled_exception_slack_handler(request: Request, exc: Exception):
     logger.error("Unhandled exception on %s %s: %s", request.method, request.url.path, msg)
     return JSONResponse(
         status_code=500,
-        content={"detail": f"Internal server error: {msg}"},
+        # Details go to the log and the alert, never to the caller (VND-007).
+        content={"detail": "Internal server error"},
         background=bg,
     )
 
@@ -1225,7 +1226,7 @@ async def add_vendor(
         )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to add vendor '{new_vendor.name}' ({new_vendor.domain}): {str(e)}"
+            detail=f"Failed to add vendor '{new_vendor.name}' ({new_vendor.domain})"
         )
 
 # 5. DELETE endpoint to delete a vendor by domain
@@ -1427,17 +1428,8 @@ async def start_domain_fullscan(
         
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to start full scan for {validated_domain}: {str(e)}"
+            detail=f"Failed to start full scan for {validated_domain}"
         )
-
-# Global exception handler
-@app.exception_handler(Exception)
-async def global_exception_handler(request: Request, exc: Exception):
-    logger.error(f"Unhandled exception: {str(exc)}")
-    return JSONResponse(
-        status_code=500,
-        content={"status": "error", "message": "Internal server error"}
-    )
 
 if __name__ == "__main__":
     port = int(os.getenv("PORT", 5006))

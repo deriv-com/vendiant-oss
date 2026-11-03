@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Request, Body
+from fastapi import APIRouter, HTTPException, Request, Body, Depends
 from typing import Optional, List
 from pydantic import BaseModel
 import logging
@@ -23,6 +23,16 @@ from config.settings import get_config
 
 # Import audit service
 from audit_service import log_request_action
+
+# Server-side authorization. The Next.js proxy only proves an SSO session
+# exists; which keys a caller may see or mint is decided here (VND-001).
+try:
+    from Dashboard.effective_permissions import require_permission
+except ImportError:
+    from effective_permissions import require_permission
+
+require_view_api_keys = require_permission("view_api_keys")
+require_manage_api_keys = require_permission("view_api_keys", "manage_api_keys")
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -108,7 +118,7 @@ except Exception as e:
     config = None
 
 @router.get("/api/api-keys/list")
-async def list_api_keys(request: Request, include_disabled: bool = False):
+async def list_api_keys(request: Request, include_disabled: bool = False, _: None = Depends(require_view_api_keys)):
     """List all API keys"""
     try:
         if not api_key_manager:
@@ -144,10 +154,10 @@ async def list_api_keys(request: Request, include_disabled: bool = False):
         
     except Exception as e:
         logger.error(f"Error listing API keys: {e}")
-        raise HTTPException(status_code=500, detail=f"Error listing API keys: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error listing API keys")
 
 @router.post("/api/api-keys/create")
-async def create_api_key(request: Request, data: CreateAPIKeyRequest = Body(...)):
+async def create_api_key(request: Request, data: CreateAPIKeyRequest = Body(...), _: None = Depends(require_manage_api_keys)):
     """Create a new API key"""
     try:
         if not api_key_manager or not config:
@@ -217,10 +227,10 @@ async def create_api_key(request: Request, data: CreateAPIKeyRequest = Body(...)
         
     except Exception as e:
         logger.error(f"Error creating API key: {e}")
-        raise HTTPException(status_code=500, detail=f"Error creating API key: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error creating API key")
 
 @router.post("/api/api-keys/revoke")
-async def revoke_api_key(request: Request, data: RevokeAPIKeyRequest = Body(...)):
+async def revoke_api_key(request: Request, data: RevokeAPIKeyRequest = Body(...), _: None = Depends(require_manage_api_keys)):
     """Revoke or unrevoke an API key"""
     try:
         if not api_key_manager:
@@ -276,10 +286,10 @@ async def revoke_api_key(request: Request, data: RevokeAPIKeyRequest = Body(...)
         raise
     except Exception as e:
         logger.error(f"Error {data.action}ing API key: {e}")
-        raise HTTPException(status_code=500, detail=f"Error {data.action}ing API key: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error {data.action}ing API key")
 
 @router.delete("/api/api-keys/delete/{key_id}")
-async def delete_api_key(request: Request, key_id: int):
+async def delete_api_key(request: Request, key_id: int, _: None = Depends(require_manage_api_keys)):
     """Permanently delete an API key"""
     try:
         if not api_key_manager:
@@ -319,10 +329,10 @@ async def delete_api_key(request: Request, key_id: int):
         raise
     except Exception as e:
         logger.error(f"Error deleting API key: {e}")
-        raise HTTPException(status_code=500, detail=f"Error deleting API key: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error deleting API key")
 
 @router.get("/api/api-keys/audit-stats")
-async def get_audit_stats(request: Request, days: int = 7):
+async def get_audit_stats(request: Request, days: int = 7, _: None = Depends(require_view_api_keys)):
     """Get audit statistics for API key usage"""
     try:
         if not audit_logger:
@@ -340,10 +350,10 @@ async def get_audit_stats(request: Request, days: int = 7):
         
     except Exception as e:
         logger.error(f"Error getting audit stats: {e}")
-        raise HTTPException(status_code=500, detail=f"Error getting audit stats: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error getting audit stats")
 
 @router.get("/api/api-keys/scopes")
-async def get_available_scopes(request: Request):
+async def get_available_scopes(request: Request, _: None = Depends(require_view_api_keys)):
     """Return all valid granular scopes for use in the frontend picker."""
     return {
         'success': True,
@@ -355,7 +365,7 @@ async def get_available_scopes(request: Request):
 
 
 @router.get("/api/api-keys/available-groups")
-async def get_available_groups(request: Request):
+async def get_available_groups(request: Request, _: None = Depends(require_view_api_keys)):
     """Get list of available permission groups"""
     try:
         if not api_key_manager:
@@ -371,11 +381,11 @@ async def get_available_groups(request: Request):
 
     except Exception as e:
         logger.error(f"Error getting available groups: {e}")
-        raise HTTPException(status_code=500, detail=f"Error getting available groups: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error getting available groups")
 
 
 @router.put("/api/api-keys/update/{key_id}")
-async def update_api_key(request: Request, key_id: int, data: UpdateAPIKeyRequest = Body(...)):
+async def update_api_key(request: Request, key_id: int, data: UpdateAPIKeyRequest = Body(...), _: None = Depends(require_manage_api_keys)):
     """Update permissions of an existing API key"""
     try:
         if not api_key_manager:
@@ -468,5 +478,5 @@ async def update_api_key(request: Request, key_id: int, data: UpdateAPIKeyReques
         raise
     except Exception as e:
         logger.error(f"Error updating API key {key_id}: {e}")
-        raise HTTPException(status_code=500, detail=f"Error updating API key: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error updating API key")
 

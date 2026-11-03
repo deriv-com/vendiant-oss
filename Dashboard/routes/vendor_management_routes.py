@@ -1,5 +1,6 @@
-from fastapi import APIRouter, HTTPException, Request, Body
+from fastapi import APIRouter, HTTPException, Request, Body, Depends
 from typing import Optional
+from pydantic import BaseModel, ConfigDict, Field
 import logging
 import os
 import sys
@@ -16,7 +17,28 @@ from db_service import get_vendor_by_id
 from cache_service import invalidate_vendors_cache
 from audit_service import audit_service, _client_ip
 
+# Server-side authorization (VND-003): reads need view_vendors, edits need
+# manage_vendors. The frontend proxy only proves an SSO session exists.
+try:
+    from Dashboard.effective_permissions import require_permission
+except ImportError:
+    from effective_permissions import require_permission
+
+require_view_vendors = require_permission("view_vendors")
+require_manage_vendors = require_permission("view_vendors", "manage_vendors")
+
 router = APIRouter()
+
+
+class VendorUpdateRequest(BaseModel):
+    """Only these fields may be changed; anything else is rejected."""
+    model_config = ConfigDict(extra='forbid')
+
+    vendor_name: str = Field('', max_length=255)
+    domain: str = Field('', max_length=253)
+    tier: str = Field('', max_length=64)
+    portfolio: str = Field('', max_length=255)
+    industry: Optional[str] = Field(None, max_length=255)
 
 def update_vendor_in_database(vendor_id, vendor_name, domain, tier, portfolio, industry):
     """Update vendor information in the database
@@ -118,11 +140,11 @@ def update_vendor_in_database(vendor_id, vendor_name, domain, tier, portfolio, i
         logging.error(f"Error updating vendor ID {vendor_id}: {str(e)}")
         return {
             'success': False,
-            'error': f'Database error: {str(e)}'
+            'error': 'Database error'
         }
 
 @router.get('/api/vendors/{vendor_id}/details')
-async def get_vendor_details(vendor_id: int):
+async def get_vendor_details(vendor_id: int, _: None = Depends(require_view_vendors)):
     """Get detailed vendor information for editing"""
     try:
         logging.info(f"Fetching details for vendor ID: {vendor_id}")
@@ -163,12 +185,18 @@ async def get_vendor_details(vendor_id: int):
         logging.error(f"Error fetching vendor details for ID {vendor_id}: {str(e)}")
         raise HTTPException(
             status_code=500,
-            detail=f'Failed to fetch vendor details: {str(e)}'
+            detail=f'Failed to fetch vendor details'
         )
 
 @router.put('/api/vendors/{vendor_id}/update')
-async def update_vendor_details(vendor_id: int, data: dict = Body(...)):
+async def update_vendor_details(
+    request: Request,
+    vendor_id: int,
+    payload: VendorUpdateRequest = Body(...),
+    _: None = Depends(require_manage_vendors),
+):
     """Update vendor information"""
+    data = payload.model_dump()
     try:
         logging.info(f"Received request to update vendor ID: {vendor_id}")
         logging.info(f"Update data: {data}")
@@ -292,11 +320,11 @@ async def update_vendor_details(vendor_id: int, data: dict = Body(...)):
         logging.error(f"Error updating vendor ID {vendor_id}: {str(e)}", exc_info=True)
         raise HTTPException(
             status_code=500,
-            detail=f'Server error: {str(e)}'
+            detail=f'Server error'
         )
 
 @router.get('/api/vendors/{vendor_id}/validate-domain')
-async def validate_domain_for_update(vendor_id: int, domain: str):
+async def validate_domain_for_update(vendor_id: int, domain: str, _: None = Depends(require_manage_vendors)):
     """Validate if a domain can be used for updating a vendor"""
     try:
         from db_config import DatabaseConnection
@@ -333,7 +361,7 @@ async def validate_domain_for_update(vendor_id: int, domain: str):
         }
 
 @router.get('/api/vendors/{vendor_id}/validate-name')
-async def validate_name_for_update(vendor_id: int, name: str):
+async def validate_name_for_update(vendor_id: int, name: str, _: None = Depends(require_manage_vendors)):
     """Validate if a vendor name can be used for updating a vendor"""
     try:
         from db_config import DatabaseConnection

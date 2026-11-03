@@ -139,8 +139,9 @@ services:
         reservations:
           cpus: '0.25'
           memory: 512M
-    ports:
-      - "5006:5006"
+    # No host port: reach the API layer through nginx (:8081/vendiant/) so its
+    # rate limits apply  For direct local debugging add
+    # ports: ["127.0.0.1:5006:5006"] in a local override file.
     env_file:
       - .env
     environment:
