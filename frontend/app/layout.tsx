@@ -33,6 +33,7 @@ export default async function RootLayout({
   children: React.ReactNode;
 }) {
   const headersList = await headers();
+  const nonce = headersList.get('x-nonce') ?? undefined;
 
   const email = headersList.get('x-user-email') ?? '';
   const name = headersList.get('x-user-name') ?? undefined;
@@ -77,6 +78,7 @@ export default async function RootLayout({
           components) and it must run before the sidebar is painted.
         */}
         <script
+          nonce={nonce}
           dangerouslySetInnerHTML={{
             __html: `(function(){try{
 if(localStorage.getItem('theme')==='dark'){document.body.classList.add('dark-mode');}

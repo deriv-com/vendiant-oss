@@ -17,8 +17,6 @@ services:
     build:
       target: dev
     image: vendiant-frontend-dev:latest
-    # Root so next dev can write its .next directory in the image.
-    user: "0:0"
     environment:
       NODE_ENV: development
       ENABLE_MOCK_AUTH: "true"
@@ -28,8 +26,3 @@ services:
     # Drop the production log volumes: next dev hangs at "Starting..." when
     # volumes are mounted inside its project directory.
     volumes: !reset []
-
-  nginx:
-    volumes:
-      # next dev's scripts need a looser CSP than production.
-      - ./nginx/csp.dev.conf:/etc/nginx/csp.conf:ro

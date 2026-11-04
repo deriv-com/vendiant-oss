@@ -27,7 +27,11 @@ RUN npm ci
 FROM deps AS dev
 # curl for the compose healthcheck
 RUN apk add --no-cache curl
-COPY . .
+# Run next dev as the image's unprivileged node user (VND-009): it only needs
+# to write .next and next-env.d.ts, so own the app dir, not node_modules.
+COPY --chown=node:node . .
+RUN mkdir -p .next && chown node:node /app .next
+USER node
 ENV NODE_ENV=development
 EXPOSE 3005
 CMD ["npm", "run", "dev", "--", "-H", "0.0.0.0"]

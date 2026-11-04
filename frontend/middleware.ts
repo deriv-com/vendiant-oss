@@ -36,11 +36,50 @@ const ADMIN_ONLY_ROUTES = [
 /** Routes that require at minimum the user-extended role */
 const EXTENDED_ROUTES: string[] = [];
 
+/**
+ * Per-request Content-Security-Policy (VND-006). Inline scripts only run if
+ * they carry this request's nonce, so the policy needs no 'unsafe-inline' for
+ * scripts. Next.js reads the nonce from the request's CSP header and stamps
+ * its own scripts; app/layout.tsx reads x-nonce for the theme script.
+ * Inline styles stay allowed: components use React style={{}} attributes.
+ */
+function buildCsp(nonce: string): string {
+  const isDev = process.env.NODE_ENV === 'development';
+  return [
+    "default-src 'self'",
+    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'${isDev ? " 'unsafe-eval'" : ''}`,
+    "style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com",
+    "font-src 'self' data: https://cdnjs.cloudflare.com",
+    "img-src 'self' https: data: blob:",
+    `connect-src 'self' https:${isDev ? ' ws:' : ''}`,
+    "frame-src 'self'",
+    "frame-ancestors 'self'",
+    "object-src 'none'",
+    "base-uri 'self'",
+    "form-action 'self'",
+  ].join('; ');
+}
+
 export async function middleware(request: NextRequest): Promise<NextResponse> {
+  const nonce = btoa(crypto.randomUUID());
+  const csp = buildCsp(nonce);
+
+  // Request headers every downstream handler sees; the client cannot supply
+  // its own x-nonce because it is overwritten here.
+  const baseHeaders = new Headers(request.headers);
+  baseHeaders.set('x-nonce', nonce);
+  baseHeaders.set('Content-Security-Policy', csp);
+
+  const pass = (headers: Headers): NextResponse => {
+    const response = NextResponse.next({ request: { headers } });
+    response.headers.set('Content-Security-Policy', csp);
+    return response;
+  };
+
   const { pathname } = request.nextUrl;
 
   if (isPublicPath(pathname)) {
-    return NextResponse.next();
+    return pass(baseHeaders);
   }
 
   // ── 0. Mock auth (local dev only) ───────────────────────────────────────────
@@ -59,14 +98,14 @@ export async function middleware(request: NextRequest): Promise<NextResponse> {
       return NextResponse.redirect(new URL('/unauthorized', request.url));
     }
 
-    const reqHeaders = new Headers(request.headers);
+    const reqHeaders = new Headers(baseHeaders);
     reqHeaders.set('x-user-id', 'dev-mock-user');
     reqHeaders.set('x-user-email', 'dev@localhost');
     reqHeaders.set('x-user-name', 'Dev User');
     reqHeaders.set('x-user-groups', mockGroups.join(','));
     reqHeaders.set('x-user-role', mockRole);
 
-    return NextResponse.next({ request: { headers: reqHeaders } });
+    return pass(reqHeaders);
   }
 
   // ── 1. Extract the SSO JWT forwarded by the gateway ─────────────────────────
@@ -115,16 +154,14 @@ export async function middleware(request: NextRequest): Promise<NextResponse> {
   // These are read by:
   //   • Next.js server components (via next/headers) → forwarded to UserProvider
   //   • FastAPI backend (via next.config.js rewrites) → enforces its own RBAC
-  const requestHeaders = new Headers(request.headers);
+  const requestHeaders = new Headers(baseHeaders);
   requestHeaders.set('x-user-id', cfUser.sub);
   requestHeaders.set('x-user-email', cfUser.email);
   requestHeaders.set('x-user-name', cfUser.name ?? '');
   requestHeaders.set('x-user-groups', cfUser.groups.join(','));
   requestHeaders.set('x-user-role', role ?? '');
 
-  return NextResponse.next({
-    request: { headers: requestHeaders },
-  });
+  return pass(requestHeaders);
 }
 
 export const config = {
