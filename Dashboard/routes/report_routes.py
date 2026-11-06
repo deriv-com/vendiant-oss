@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Request, Query, Body
+from fastapi import APIRouter, HTTPException, Request, Query, Body, Depends
 from fastapi.responses import Response
 from typing import Optional
 import logging
@@ -27,8 +27,24 @@ from incidents import query_incidents_json
 
 router = APIRouter()
 
+try:
+    from Dashboard.effective_permissions import require_permission
+except ImportError:
+    from effective_permissions import require_permission
+
+require_view_vendor_reports = require_permission("view_vendors", "view_vendor_reports")
+require_export_vendor_reports = require_permission(
+    "view_vendors",
+    "view_vendor_reports",
+    "export_vendor_reports",
+)
+
 @router.post('/api/reports/{domain}/export-pdf')
-async def export_report_to_pdf(domain: str, data: dict = Body(...)):
+async def export_report_to_pdf(
+    domain: str,
+    data: dict = Body(...),
+    _: None = Depends(require_export_vendor_reports),
+):
     """Export comprehensive security report to PDF with selected sections"""
     try:
         # Clean domain name
@@ -163,7 +179,7 @@ async def export_report_to_pdf(domain: str, data: dict = Body(...)):
             detail=f'Failed to export PDF report: {str(e)}'
         )
 @router.get('/api/scores/{domain}')
-async def get_domain_scores(domain: str):
+async def get_domain_scores(domain: str, _: None = Depends(require_view_vendor_reports)):
     """Get all scores for a domain from database"""
     try:
         scores = get_scores_for_domain(domain)
@@ -178,7 +194,11 @@ async def get_domain_scores(domain: str):
 
 
 @router.get('/api/scores/{domain}/timeline')
-async def get_domain_scores_timeline(domain: str, months: str = Query(default='3')):
+async def get_domain_scores_timeline(
+    domain: str,
+    months: str = Query(default='3'),
+    _: None = Depends(require_view_vendor_reports),
+):
     """Get score timeline for a domain over the past 3 months"""
     try:
         from db_config import DatabaseConnection

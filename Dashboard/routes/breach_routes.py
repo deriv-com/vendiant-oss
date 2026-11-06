@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Request, Query, Body
+from fastapi import APIRouter, HTTPException, Request, Query, Body, Depends
 from typing import Optional
 import logging
 import os
@@ -25,8 +25,15 @@ except ImportError as e:
 # Create router instance
 router = APIRouter()
 
+try:
+    from Dashboard.effective_permissions import require_permission
+except ImportError:
+    from effective_permissions import require_permission
+
+require_view_pwn_monitor = require_permission("view_pwn_monitor")
+
 @router.get('/api/breaches/check')  
-async def check_vendor_breaches():
+async def check_vendor_breaches(_: None = Depends(require_view_pwn_monitor)):
     """
     API endpoint to check for breaches affecting vendors
     Fetches latest Have I Been Pwned data and compares with vendor database
@@ -67,11 +74,11 @@ async def check_vendor_breaches():
         logging.error(f"Error in breach check API: {str(e)}")
         raise HTTPException(
             status_code=500,
-            detail=f'Internal server error: {str(e)}'
+            detail='Internal server error'
         )
 
 @router.get('/api/breaches/matches/{vendor_id}')
-async def get_vendor_breach_matches(vendor_id: int):
+async def get_vendor_breach_matches(vendor_id: int, _: None = Depends(require_view_pwn_monitor)):
     """
     API endpoint to get breach matches for a specific vendor
     """
@@ -124,5 +131,5 @@ async def get_vendor_breach_matches(vendor_id: int):
         logging.error(f"Error getting vendor breach matches: {str(e)}")
         raise HTTPException(
             status_code=500,
-            detail=f'Internal server error: {str(e)}'
+            detail='Internal server error'
         )

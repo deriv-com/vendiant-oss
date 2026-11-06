@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from datetime import datetime, timedelta
 from typing import List, Dict, Any, Optional
 import logging
@@ -16,7 +16,14 @@ logger = setup_logger()
 from db_config import DatabaseConnection
 from cache_service import get_vendors_cached
 
+try:
+    from Dashboard.effective_permissions import require_permission
+except ImportError:
+    from effective_permissions import require_permission
+
 router = APIRouter()
+
+require_view_analytics = require_permission("view_vendors", "view_vendor_reports")
 
 TREND_LOOKBACK_DAYS = 30
 MIN_BASELINE_AGE_DAYS = 7
@@ -389,7 +396,7 @@ def get_greatest_decline_30_days(limit: int = 5) -> List[Dict[str, Any]]:
 
 
 @router.get('/api/analytics/domain-distribution')
-async def get_domain_distribution():
+async def get_domain_distribution(_: None = Depends(require_view_analytics)):
     """Get domain distribution data for heatmap visualization"""
     try:
         vendors = get_vendors_cached()
@@ -458,7 +465,7 @@ async def get_domain_distribution():
 
 
 @router.get('/api/analytics/vendor-performance')
-async def get_vendor_performance():
+async def get_vendor_performance(_: None = Depends(require_view_analytics)):
     """Get vendor performance data for analytics tables"""
     try:
         if _sync_monthly_score_snapshots():
@@ -498,7 +505,12 @@ async def get_vendor_performance():
 
 
 @router.get('/api/analytics/vendors-by-cell')
-async def get_vendors_by_cell(riskLevel: str, riskRange: str, tier: str):
+async def get_vendors_by_cell(
+    riskLevel: str,
+    riskRange: str,
+    tier: str,
+    _: None = Depends(require_view_analytics),
+):
     """Get vendors for a specific heatmap cell"""
     try:
         vendors = get_vendors_cached()

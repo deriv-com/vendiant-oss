@@ -45,19 +45,55 @@ const EXTENDED_ROUTES: string[] = [];
  */
 function buildCsp(nonce: string): string {
   const isDev = process.env.NODE_ENV === 'development';
+  const connectSrc = buildConnectSrcDirective(isDev);
   return [
     "default-src 'self'",
     `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'${isDev ? " 'unsafe-eval'" : ''}`,
     "style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com",
     "font-src 'self' data: https://cdnjs.cloudflare.com",
     "img-src 'self' https: data: blob:",
-    `connect-src 'self' https:${isDev ? ' ws:' : ''}`,
+    connectSrc,
     "frame-src 'self'",
     "frame-ancestors 'self'",
     "object-src 'none'",
     "base-uri 'self'",
     "form-action 'self'",
   ].join('; ');
+}
+
+function parseOriginCandidate(raw: string): string | null {
+  const value = raw.trim();
+  if (!value) return null;
+  try {
+    const parsed = new URL(value);
+    return parsed.origin;
+  } catch {
+    return null;
+  }
+}
+
+function buildConnectSrcDirective(isDev: boolean): string {
+  const sources = new Set<string>(["'self'"]);
+
+  // Explicitly allow known runtime origins only; avoid blanket https: in connect-src.
+  const envCandidates = [
+    process.env.NEXT_PUBLIC_API_URL,
+    process.env.NEXT_PUBLIC_BASE_URL,
+  ];
+
+  for (const candidate of envCandidates) {
+    if (!candidate) continue;
+    const origin = parseOriginCandidate(candidate);
+    if (origin) {
+      sources.add(origin);
+    }
+  }
+
+  if (isDev) {
+    sources.add('ws:');
+  }
+
+  return `connect-src ${Array.from(sources).join(' ')}`;
 }
 
 export async function middleware(request: NextRequest): Promise<NextResponse> {
