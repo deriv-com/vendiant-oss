@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Request, Query, Body
+from fastapi import APIRouter, HTTPException, Request, Query, Body, Depends
 from typing import Optional
 import logging
 
@@ -15,8 +15,16 @@ from shared_config import invalidate_subdomain_cache
 
 router = APIRouter()
 
+try:
+    from Dashboard.effective_permissions import require_permission
+except ImportError:
+    from effective_permissions import require_permission
+
+require_view_subdomains    = require_permission("view_subdomains")
+require_exclude_subdomains = require_permission("view_subdomains", "exclude_subdomains")
+
 @router.get('/api/vendors/{vendor_id}/excluded-subdomains')
-async def get_excluded_subdomains_api(vendor_id: int):
+async def get_excluded_subdomains_api(vendor_id: int, _: None = Depends(require_view_subdomains)):
     """Get all excluded subdomains for a vendor"""
     try:
         result = get_excluded_subdomains_for_vendor(vendor_id)
@@ -30,10 +38,14 @@ async def get_excluded_subdomains_api(vendor_id: int):
         raise
     except Exception as e:
         logging.error(f"Error retrieving excluded subdomains for vendor {vendor_id}: {e}")
-        raise HTTPException(status_code=500, detail=f'Server error: {str(e)}')
+        raise HTTPException(status_code=500, detail='Internal server error')
 
 @router.post('/api/vendors/{vendor_id}/excluded-subdomains')
-async def add_excluded_subdomain_api(vendor_id: int, data: dict = Body(...)):
+async def add_excluded_subdomain_api(
+    vendor_id: int,
+    data: dict = Body(...),
+    _: None = Depends(require_exclude_subdomains),
+):
     """Add a subdomain to the exclusion list"""
     try:
         subdomain = data.get('subdomain', '').strip()
@@ -58,10 +70,14 @@ async def add_excluded_subdomain_api(vendor_id: int, data: dict = Body(...)):
         raise
     except Exception as e:
         logging.error(f"Error adding excluded subdomain for vendor {vendor_id}: {e}")
-        raise HTTPException(status_code=500, detail=f'Server error: {str(e)}')
+        raise HTTPException(status_code=500, detail='Internal server error')
 
 @router.delete('/api/vendors/{vendor_id}/excluded-subdomains/{subdomain}')
-async def remove_excluded_subdomain_api(vendor_id: int, subdomain: str):
+async def remove_excluded_subdomain_api(
+    vendor_id: int,
+    subdomain: str,
+    _: None = Depends(require_exclude_subdomains),
+):
     """Remove a subdomain from the exclusion list"""
     try:
         if not subdomain or not subdomain.strip():
@@ -86,4 +102,4 @@ async def remove_excluded_subdomain_api(vendor_id: int, subdomain: str):
         raise
     except Exception as e:
         logging.error(f"Error removing excluded subdomain {subdomain} for vendor {vendor_id}: {e}")
-        raise HTTPException(status_code=500, detail=f'Server error: {str(e)}')
+        raise HTTPException(status_code=500, detail='Internal server error')

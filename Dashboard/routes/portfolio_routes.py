@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Request, Query, Body
+from fastapi import APIRouter, HTTPException, Request, Query, Body, Depends
 from fastapi.responses import JSONResponse
 from typing import Optional
 import logging
@@ -17,6 +17,17 @@ from audit_service import log_request_action
 
 router = APIRouter()
 
+try:
+    from Dashboard.effective_permissions import require_permission
+except ImportError:
+    from effective_permissions import require_permission
+
+require_view_portfolios   = require_permission("view_portfolios")
+require_create_portfolios = require_permission("view_portfolios", "create_portfolios")
+require_manage_portfolios = require_permission("view_portfolios", "manage_portfolios")
+require_delete_portfolios = require_permission("view_portfolios", "delete_portfolios")
+require_view_vendors      = require_permission("view_vendors")
+
 # Audit details record which vendors moved; cap the list so one bulk edit cannot
 # write an unbounded blob into audit_logs.details.
 _MAX_AUDITED_NAMES = 20
@@ -31,7 +42,7 @@ def _name_sample(names: list) -> dict:
     return sample
 
 @router.get('/api/portfolios/stats')
-async def get_portfolio_stats():
+async def get_portfolio_stats(_: None = Depends(require_view_portfolios)):
     """Get portfolio statistics - individual portfolios only"""
     try:
         with DatabaseConnection() as db:
@@ -95,10 +106,10 @@ async def get_portfolio_stats():
         
     except Exception as e:
         logging.error(f"Error retrieving portfolio statistics: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 @router.post('/api/portfolios/compare')
-async def compare_portfolios(data: dict = Body(...)):
+async def compare_portfolios(data: dict = Body(...), _: None = Depends(require_view_portfolios)):
     """Compare two portfolios to find common vendors"""
     try:
         portfolio1 = data.get('portfolio1')
@@ -179,10 +190,14 @@ async def compare_portfolios(data: dict = Body(...)):
         raise
     except Exception as e:
         logging.error(f"Error comparing portfolios: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 @router.post('/api/portfolios/create')
-async def create_portfolio(request: Request, data: dict = Body(...)):
+async def create_portfolio(
+    request: Request,
+    data: dict = Body(...),
+    _: None = Depends(require_create_portfolios),
+):
     """Create a new portfolio with selected vendors"""
     try:
         portfolio_name = data.get('portfolio_name', '').strip()
@@ -260,10 +275,14 @@ async def create_portfolio(request: Request, data: dict = Body(...)):
         raise
     except Exception as e:
         logging.error(f"Error creating portfolio: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 @router.delete('/api/portfolios/{portfolio_name}')
-async def delete_portfolio(request: Request, portfolio_name: str):
+async def delete_portfolio(
+    request: Request,
+    portfolio_name: str,
+    _: None = Depends(require_delete_portfolios),
+):
     """Delete a portfolio by removing it from all vendors"""
     try:
         if not portfolio_name or not portfolio_name.strip():
@@ -326,10 +345,10 @@ async def delete_portfolio(request: Request, portfolio_name: str):
         raise
     except Exception as e:
         logging.error(f"Error deleting portfolio: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 @router.get('/api/portfolios/{portfolio_name}/vendors')
-async def get_portfolio_vendors(portfolio_name: str):
+async def get_portfolio_vendors(portfolio_name: str, _: None = Depends(require_view_portfolios)):
     """Get all vendors in a specific portfolio"""
     try:
         if not portfolio_name or not portfolio_name.strip():
@@ -374,10 +393,15 @@ async def get_portfolio_vendors(portfolio_name: str):
         raise
     except Exception as e:
         logging.error(f"Error getting portfolio vendors: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 @router.post('/api/portfolios/{portfolio_name}/vendors/add')
-async def add_vendors_to_portfolio(request: Request, portfolio_name: str, data: dict = Body(...)):
+async def add_vendors_to_portfolio(
+    request: Request,
+    portfolio_name: str,
+    data: dict = Body(...),
+    _: None = Depends(require_manage_portfolios),
+):
     """Add vendors to an existing portfolio"""
     try:
         if not portfolio_name or not portfolio_name.strip():
@@ -467,10 +491,15 @@ async def add_vendors_to_portfolio(request: Request, portfolio_name: str, data: 
         raise
     except Exception as e:
         logging.error(f"Error adding vendors to portfolio: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 @router.post('/api/portfolios/{portfolio_name}/vendors/remove')
-async def remove_vendors_from_portfolio(request: Request, portfolio_name: str, data: dict = Body(...)):
+async def remove_vendors_from_portfolio(
+    request: Request,
+    portfolio_name: str,
+    data: dict = Body(...),
+    _: None = Depends(require_manage_portfolios),
+):
     """Remove vendors from a portfolio"""
     try:
         if not portfolio_name or not portfolio_name.strip():
@@ -543,10 +572,10 @@ async def remove_vendors_from_portfolio(request: Request, portfolio_name: str, d
         raise
     except Exception as e:
         logging.error(f"Error removing vendors from portfolio: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 @router.get('/api/vendors/available')
-async def get_available_vendors():
+async def get_available_vendors(_: None = Depends(require_view_vendors)):
     """Get all vendors that can be added to portfolios"""
     try:
         with DatabaseConnection() as db:
@@ -578,4 +607,4 @@ async def get_available_vendors():
             
     except Exception as e:
         logging.error(f"Error getting available vendors: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Internal server error")

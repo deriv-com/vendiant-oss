@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Request, Query, Body
+from fastapi import APIRouter, HTTPException, Request, Query, Body, Depends
 from typing import Optional
 import logging
 import time
@@ -11,6 +11,13 @@ from db_service import get_vulnerabilities_for_domain, AiAnalyticsService
 from scan_health_notifier import notify_external_api_failure
 
 router = APIRouter()
+
+try:
+    from Dashboard.effective_permissions import require_permission
+except ImportError:
+    from effective_permissions import require_permission
+
+require_view_vendor_reports = require_permission("view_vendors", "view_vendor_reports")
 
 # AI insights caching is now handled by database (ai_analytics table) using vulnerability_count
 
@@ -160,7 +167,10 @@ def generate_template_insights(vendor_name, domain, overall_score, grade, total_
 
 
 @router.post('/api/ai-insights/generate')
-async def generate_ai_insights(data: dict = Body(...)):
+async def generate_ai_insights(
+    data: dict = Body(...),
+    _: None = Depends(require_view_vendor_reports),
+):
     """Generate AI-powered security insights for a vendor
     
     This endpoint fetches vulnerabilities directly from the database and uses
@@ -443,5 +453,5 @@ CRITICAL: You MUST complete ALL three sections (VENDOR_OVERVIEW, SECURITY_POSTUR
         logging.error(f"Traceback: {traceback.format_exc()}")
         raise HTTPException(
             status_code=500,
-            detail=f'Failed to generate insights: {str(e)}'
+            detail='Failed to generate insights'
         )

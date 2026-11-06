@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Request, Query, Body
+from fastapi import APIRouter, HTTPException, Request, Query, Body, Depends
 from typing import Optional
 import logging
 import os
@@ -14,6 +14,17 @@ from audit_service import audit_service, _client_ip
 
 router = APIRouter()
 
+try:
+    from Dashboard.effective_permissions import require_permission
+except ImportError:
+    from effective_permissions import require_permission
+
+# view_audit_logs — admin only (reading the full audit trail)
+require_view_audit_logs = require_permission("view_audit_logs")
+# view_vendors — the minimum permission held by every SSO-authenticated role;
+# used as a "logged-in" gate on the write endpoint (all roles already have it).
+require_logged_in = require_permission("view_vendors")
+
 @router.get('/api/audit-logs')
 async def get_audit_logs(
     request: Request,
@@ -23,7 +34,8 @@ async def get_audit_logs(
     resource_type_filter: Optional[str] = Query(default=None),
     days_back: Optional[int] = Query(default=30),
     user_email_filter: Optional[str] = Query(default=None),
-    user_name_filter: Optional[str] = Query(default=None)
+    user_name_filter: Optional[str] = Query(default=None),
+    _: None = Depends(require_view_audit_logs),
 ):
     """
     Get audit logs with optional filtering
@@ -31,8 +43,6 @@ async def get_audit_logs(
     try:
         # Get user info from headers (set by frontend middleware)
         requesting_user_email = request.headers.get('X-User-Email')
-        # Note: Frontend RBAC already restricts access to this endpoint
-        # No additional role checking needed here
         
         logs = audit_service.get_user_audit_logs(
             user_email=user_email_filter,
@@ -62,21 +72,19 @@ async def get_audit_logs(
         
     except Exception as e:
         logging.error(f"Error retrieving audit logs: {e}")
-        raise HTTPException(status_code=500, detail=f"Error retrieving audit logs: {str(e)}")
+        raise HTTPException(status_code=500, detail="Error retrieving audit logs")
 
 
 @router.get('/api/audit-logs/stats')
 async def get_audit_stats(
     request: Request,
-    days_back: int = Query(default=30)
+    days_back: int = Query(default=30),
+    _: None = Depends(require_view_audit_logs),
 ):
     """
     Get audit statistics for the dashboard
     """
     try:
-        # Note: Frontend RBAC already restricts access to this endpoint
-        # No additional role checking needed here
-        
         stats = audit_service.get_audit_stats(days_back=days_back)
         return stats
         
@@ -84,13 +92,14 @@ async def get_audit_stats(
         raise
     except Exception as e:
         logging.error(f"Error retrieving audit stats: {e}")
-        raise HTTPException(status_code=500, detail=f"Error retrieving audit stats: {str(e)}")
+        raise HTTPException(status_code=500, detail="Error retrieving audit stats")
 
 
 @router.post('/api/audit-logs/log')
 async def manual_log_action(
     request: Request,
-    data: dict = Body(...)
+    data: dict = Body(...),
+    _: None = Depends(require_logged_in),
 ):
     """
     Manually log an action (for frontend-only actions)
@@ -141,4 +150,4 @@ async def manual_log_action(
         raise
     except Exception as e:
         logging.error(f"Error logging manual action: {e}")
-        raise HTTPException(status_code=500, detail=f"Error logging action: {str(e)}")
+        raise HTTPException(status_code=500, detail="Error logging action")

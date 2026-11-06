@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Request, Query
+from fastapi import APIRouter, HTTPException, Request, Query, Depends
 from typing import Optional
 import logging
 from datetime import datetime
@@ -27,8 +27,15 @@ def get_subdomains_cached(domain):
 
 router = APIRouter()
 
+try:
+    from Dashboard.effective_permissions import require_permission
+except ImportError:
+    from effective_permissions import require_permission
+
+require_view_vendors = require_permission("view_vendors")
+
 @router.get('/api/critical-alerts')
-async def get_critical_alerts():
+async def get_critical_alerts(_: None = Depends(require_view_vendors)):
     """Get all critical vulnerabilities, low-scoring domains, and critical news/incidents across all scan types"""
     try:
         critical_alerts = []
@@ -195,7 +202,7 @@ async def get_critical_alerts():
         raise HTTPException(status_code=500, detail='Failed to fetch critical alerts')
 
 @router.get('/api/critical-alerts/subdomain-details/{vendor_id}')
-async def get_subdomain_critical_details(vendor_id: int):
+async def get_subdomain_critical_details(vendor_id: int, _: None = Depends(require_view_vendors)):
     """Get detailed critical vulnerability breakdown by subdomain for a vendor"""
     try:
         logging.info(f"Fetching subdomain details for vendor_id: {vendor_id}")

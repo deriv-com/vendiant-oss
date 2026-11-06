@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Request, Query, Body
+from fastapi import APIRouter, HTTPException, Request, Query, Body, Depends
 from typing import Optional
 import logging
 import os
@@ -21,11 +21,22 @@ from db_service import (
 
 router = APIRouter()
 
+try:
+    from Dashboard.effective_permissions import require_permission
+except ImportError:
+    from effective_permissions import require_permission
+
+# view_certifications — user-basic and above (read)
+require_view_certifications = require_permission("view_certifications")
+# check_all_certifications — admin only; triggers expensive AI-based cert scan for all vendors
+require_check_certifications = require_permission("check_all_certifications")
+
 @router.get('/api/certifications')
 async def get_certifications(
     iso_27001: Optional[str] = Query(default=None),
     soc2: Optional[str] = Query(default=None),
-    both_certifications: Optional[str] = Query(default=None)
+    both_certifications: Optional[str] = Query(default=None),
+    _: None = Depends(require_view_certifications),
 ):
     """Get all vendors with certification filtering"""
     try:
@@ -75,7 +86,7 @@ async def get_certifications(
         }
 
 @router.get('/api/certifications/statistics')
-async def get_cert_statistics():
+async def get_cert_statistics(_: None = Depends(require_view_certifications)):
     """Get certification statistics"""
     try:
         stats = get_certification_statistics()
@@ -85,7 +96,10 @@ async def get_cert_statistics():
         raise HTTPException(status_code=500, detail='Failed to retrieve statistics')
 
 @router.post('/api/certifications/check')
-async def check_certifications(data: dict = Body(default={})):
+async def check_certifications(
+    data: dict = Body(default={}),
+    _: None = Depends(require_check_certifications),
+):
     """Start certification check for vendors as background task"""
     try:
         domains = data.get('domains', [])
@@ -185,11 +199,11 @@ async def check_certifications(data: dict = Body(default={})):
         logging.error(f"Error starting certification check: {str(e)}")
         raise HTTPException(
             status_code=500,
-            detail=f'Failed to start certification check: {str(e)}'
+            detail='Failed to start certification check'
         )
 
 @router.get('/api/certifications/status')
-async def get_certification_status():
+async def get_certification_status(_: None = Depends(require_view_certifications)):
     """Get status of certification checks"""
     try:
         import threading
@@ -204,11 +218,16 @@ async def get_certification_status():
         logging.error(f"Error getting certification status: {str(e)}")
         raise HTTPException(
             status_code=500,
-            detail=f'Failed to get certification status: {str(e)}'
+            detail='Failed to get certification status'
         )
 
 @router.put('/api/certifications/{domain}')
-async def update_vendor_certification(domain: str, request: Request, data: dict = Body(...)):
+async def update_vendor_certification(
+    domain: str,
+    request: Request,
+    data: dict = Body(...),
+    _: None = Depends(require_check_certifications),
+):
     """Update certifications for a specific vendor by domain"""
     try:
         # Validate input
@@ -273,5 +292,5 @@ async def update_vendor_certification(domain: str, request: Request, data: dict 
         logging.error(f"Error updating certifications for {domain}: {str(e)}")
         raise HTTPException(
             status_code=500,
-            detail=f'Failed to update certifications: {str(e)}'
+            detail='Failed to update certifications'
         )

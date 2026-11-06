@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Body, HTTPException, Query
+from fastapi import APIRouter, Body, HTTPException, Query, Depends
 from datetime import datetime, timedelta
 import logging
 import sys
@@ -46,6 +46,18 @@ logging.info(f"News routes module loaded - INCIDENTS_MODULE_AVAILABLE: {INCIDENT
 
 router = APIRouter()
 
+try:
+    from Dashboard.effective_permissions import require_permission
+except ImportError:
+    from effective_permissions import require_permission
+
+# view_incidents — user-basic and above (read-only news/incidents data)
+require_view_incidents = require_permission("view_incidents")
+# run_full_scans  — admin only; triggers expensive AI API calls per vendor
+require_run_scans     = require_permission("run_full_scans")
+# view_admin_features — admin only (scheduler internals)
+require_view_admin    = require_permission("view_admin_features")
+
 # Global variables for news scanning
 news_scan_jobs = {}  # Format: {job_id: {'status': 'running', 'progress': 0, 'type': 'news_scan', ...}}
 news_job_counter = 0
@@ -53,7 +65,7 @@ scheduler = BackgroundScheduler()
 scheduler_initialized = False
 
 @router.post('/api/incidents')
-async def post_incidents(req: dict = Body(default={})):
+async def post_incidents(req: dict = Body(default={}), _: None = Depends(require_view_incidents)):
     """POST endpoint for incidents"""
     try:
         domain = req.get('domain')
@@ -69,7 +81,7 @@ async def post_incidents(req: dict = Body(default={})):
         raise
     except Exception as e:
         logging.exception("Error fetching security incidents")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 async def _handle_incidents(domain: str, months: int, force_refresh: bool):
     """Common handler for incidents endpoints"""
@@ -101,7 +113,8 @@ async def _handle_incidents(domain: str, months: int, force_refresh: bool):
 @router.get('/api/news/all')
 async def get_all_recent_news(
     months: int = Query(default=12),
-    domain: Optional[str] = Query(default=None, alias='domain')
+    domain: Optional[str] = Query(default=None, alias='domain'),
+    _: None = Depends(require_view_incidents),
 ):
     """Get all recent news items across all domains"""
     try:
@@ -141,10 +154,13 @@ async def get_all_recent_news(
         
     except Exception as e:
         logging.exception("Error retrieving all news")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 @router.post('/api/news/scan-all')
-async def scan_all_domains_for_news(data: dict = Body(default={})):
+async def scan_all_domains_for_news(
+    data: dict = Body(default={}),
+    _: None = Depends(require_run_scans),
+):
     """Start background scan for all domains for fresh news and incidents"""
     try:
         months = data.get('months', 12)
@@ -201,10 +217,10 @@ async def scan_all_domains_for_news(data: dict = Body(default={})):
         raise
     except Exception as e:
         logging.exception("Error starting bulk news scan")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 @router.get('/api/news/scheduler-status')
-async def get_scheduler_status():
+async def get_scheduler_status(_: None = Depends(require_view_admin)):
     """Get status of the news scheduler"""
     try:
         jobs = scheduler.get_jobs()
@@ -228,10 +244,10 @@ async def get_scheduler_status():
         }
     except Exception as e:
         logging.exception("Error getting scheduler status")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 @router.get('/api/news/scan-status/{job_id}')
-async def get_news_scan_status(job_id: str):
+async def get_news_scan_status(job_id: str, _: None = Depends(require_view_incidents)):
     """Get status of background news scan job"""
     try:
         if job_id not in news_scan_jobs:
@@ -288,7 +304,7 @@ async def get_news_scan_status(job_id: str):
         logging.error(f"Error getting news scan status: {str(e)}")
         raise HTTPException(
             status_code=500,
-            detail=f'Failed to get scan status: {str(e)}'
+            detail='Failed to get scan status'
         )
 
 # News scanning background function
