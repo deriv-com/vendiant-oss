@@ -1,0 +1,117 @@
+# ============================================================================
+# VENDIANT PROJECT - UNIFIED REQUIREMENTS
+# ============================================================================
+# This file consolidates all dependencies across all project modules
+# Install with: pip install -r requirements.txt
+# ============================================================================
+
+# Core Web Framework (Dashboard) - FastAPI
+fastapi>=0.133.0
+uvicorn[standard]==0.24.0
+pydantic>=2.9.0
+starlette>=1.0.1
+python-multipart>=0.0.22
+
+
+# HTTP Requests and API Clients
+requests>=2.33.0
+requests-file==2.1.0
+aiohttp>=3.13.4
+aiohappyeyeballs==2.6.1
+aiosignal==1.4.0
+
+# Network scanning: handled by the pluggable providers in Network/providers
+# (built-in TCP connect scan needs nothing; the nmap provider needs the nmap binary)
+
+# Environment and Configuration
+python-dotenv==1.2.2
+dotenv==0.9.9
+
+# Data Processing and Analysis
+numpy==2.3.2
+pandas==2.3.1
+
+# Excel and Spreadsheet Processing
+openpyxl==3.1.5
+xlsxwriter==3.2.5
+et_xmlfile==2.0.0
+
+# Database Connectivity
+psycopg2-binary==2.9.9
+
+# DNS and Network Tools
+dnspython>=2.4.0
+python-whois>=0.9.0
+
+# SSL/TLS and Encryption
+pyOpenSSL>=21.0.0
+
+# AI/LLM Integration
+openai>=1.66.0
+google-generativeai>=0.8.0
+
+# Supabase Integration (for LLM call logging)
+supabase>=2.0.0
+
+# Date and Time Handling
+python-dateutil==2.9.0.post0
+pytz==2025.2
+tzdata==2025.2
+
+# System and Process Monitoring
+psutil>=5.8.0
+
+# Web Scraping and Analysis
+builtwith==1.3.4
+tldextract==5.3.0
+feedparser==6.0.10
+
+# Text Processing and Encoding
+charset-normalizer==3.4.2
+certifi==2026.10.19
+idna>=3.15
+urllib3>=2.6.3
+
+# CLI and Command Line Tools
+click==8.2.1
+click-plugins==1.1.1.2
+colorama==0.4.6
+
+# Data Structures and Utilities
+attrs==25.3.0
+frozenlist==1.7.0
+multidict==6.6.3
+propcache==0.3.2
+yarl==1.20.1
+six==1.17.0
+typing_extensions==4.14.1
+
+# File and System Operations
+filelock>=3.20.3
+setuptools>=70.0.0
+reportlab==4.0.8 
+
+#Scheduler
+APScheduler==3.10.4
+
+
+#API Layer
+argon2-cffi==23.1.0 
+
+# ============================================================================
+# MODULE-SPECIFIC NOTES:
+# ============================================================================
+# Dashboard: FastAPI, uvicorn, pydantic, psycopg2-binary, numpy, pandas, openpyxl
+# DNS Scanner: dnspython, python-whois, psutil, requests, python-dateutil  
+# Encryption Scanner: pyOpenSSL, psutil, requests
+# Network Scanner: Network/providers (socket, nmap or your own tool), psutil
+# Certificates: openai, python-dotenv (LLM integration)
+# Database: psycopg2-binary, python-dotenv
+# Subdomains: dnspython, requests (basic subdomain enumeration)
+#
+# System Dependencies (install via package manager):
+# - dig, nslookup, whois (DNS tools)
+# - testssl.sh (SSL/TLS testing)
+# - curl, wget, openssl (network tools)
+# ============================================================================
+

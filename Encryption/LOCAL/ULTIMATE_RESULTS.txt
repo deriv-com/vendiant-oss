@@ -1,0 +1,19 @@
+VENDOR RISK SCANNER - SINGLE DOMAIN SCAN
+============================================================
+Target Domain: google.com
+Running automated scans:
+  - Setup verification
+  - Full vendor risk scan
+  - Detailed certificate inspection
+============================================================
+TESTING SCANNER SETUP
+========================================
+Tool Availability:
+  testssl.sh: Not found or not executable
+  curl: Available at /usr/bin/curl
+  wget: Available at /opt/homebrew/bin/wget
+  openssl: Available at /opt/homebrew/bin/openssl
+
+Some tools are missing. Please install them first.
+
+Setup check failed. Please install missing tools.

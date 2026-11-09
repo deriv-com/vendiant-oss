@@ -1,0 +1,1086 @@
+.pageContainer {
+  padding: 24px;
+  max-width: 1400px;
+  margin: 0 auto;
+  min-height: calc(100vh - 80px);
+}
+
+.pageHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 32px;
+  padding-bottom: 24px;
+  border-bottom: 2px solid #e9ecef;
+}
+
+.headerLeft h1 {
+  margin: 0 0 8px 0;
+  font-size: 32px;
+  font-weight: 700;
+  color: #dc3545;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.headerLeft h1 i {
+  font-size: 28px;
+  animation: flash-warning 2s infinite;
+}
+
+.pageDescription {
+  margin: 0;
+  font-size: 16px;
+  color: #6c757d;
+  line-height: 1.5;
+  max-width: 600px;
+}
+
+.headerStats {
+  display: flex;
+  gap: 20px;
+}
+
+.statCard {
+  background: white;
+  border: 1px solid #e9ecef;
+  border-radius: 12px;
+  padding: 20px;
+  text-align: center;
+  min-width: 120px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.statCard:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+.statNumber {
+  font-size: 28px;
+  font-weight: 700;
+  color: #dc3545;
+  margin-bottom: 4px;
+}
+
+.statLabel {
+  font-size: 14px;
+  color: #6c757d;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.filtersSection {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 24px;
+  padding: 20px;
+  background: #f8f9fa;
+  border-radius: 12px;
+  border: 1px solid #e9ecef;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.searchBox {
+  position: relative;
+  flex: 1;
+  min-width: 300px;
+}
+
+.searchBox i {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #6c757d;
+  font-size: 16px;
+}
+
+.searchBox input {
+  width: 100%;
+  padding: 12px 16px 12px 48px;
+  border: 1px solid #ced4da;
+  border-radius: 8px;
+  font-size: 16px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  background: white;
+}
+
+.searchBox input:focus {
+  outline: none;
+  border-color: #dc3545;
+  box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.1);
+}
+
+.filterSelect {
+  padding: 12px 16px;
+  border: 1px solid #ced4da;
+  border-radius: 8px;
+  font-size: 14px;
+  background: white;
+  cursor: pointer;
+  transition: border-color 0.2s;
+  min-width: 150px;
+}
+
+.filterSelect:focus {
+  outline: none;
+  border-color: #dc3545;
+}
+
+.refreshButton {
+  padding: 12px 20px;
+  background: linear-gradient(135deg, #28a745, #1e7e34);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(40, 167, 69, 0.3);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.refreshButton:hover:not(:disabled) {
+  background: linear-gradient(135deg, #1e7e34, #155724);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(40, 167, 69, 0.4);
+}
+
+.refreshButton:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: 0 2px 6px rgba(40, 167, 69, 0.3);
+}
+
+.refreshButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: 0 2px 8px rgba(40, 167, 69, 0.2);
+}
+
+.contentSection {
+  min-height: 400px;
+}
+
+.loading, .error, .noAlerts {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 20px;
+  text-align: center;
+  color: #6c757d;
+}
+
+.loading i, .error i, .noAlerts i {
+  font-size: 64px;
+  margin-bottom: 20px;
+}
+
+.loading h3, .error h3, .noAlerts h3 {
+  margin: 0 0 8px 0;
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.loading p, .error p, .noAlerts p {
+  margin: 0 0 20px 0;
+  font-size: 16px;
+  max-width: 500px;
+}
+
+.error {
+  color: #dc3545;
+}
+
+.noAlerts {
+  color: #28a745;
+}
+
+.retryButton {
+  padding: 12px 24px;
+  background: linear-gradient(135deg, #007bff, #0056b3);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 123, 255, 0.3);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.retryButton:hover {
+  background: linear-gradient(135deg, #0056b3, #004085);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 123, 255, 0.4);
+}
+
+.retryButton:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 6px rgba(0, 123, 255, 0.3);
+}
+
+.noAlertsActions {
+  margin-top: 20px;
+}
+
+.alertsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+  gap: 24px;
+}
+
+.alertCard {
+  background: white;
+  border: 1px solid #e9ecef;
+  border-radius: 12px;
+  padding: 24px;
+  transition: box-shadow 0.2s, transform 0.2s;
+  border-left: 4px solid #dc3545;
+  height: fit-content;
+}
+
+.alertCard:hover {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  transform: translateY(-2px);
+}
+
+.alertCardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 16px;
+}
+
+.vendorInfo {
+  flex: 1;
+}
+
+.vendorName {
+  margin: 0 0 4px 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #212529;
+}
+
+.domainName {
+  font-size: 14px;
+  color: #6c757d;
+  font-family: 'Courier New', monospace;
+  background: #f8f9fa;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.alertMeta {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-end;
+}
+
+.severityBadge {
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  letter-spacing: 0.5px;
+}
+
+.severityCritical {
+  background: #dc3545;
+  color: white;
+}
+
+.severityHigh {
+  background: #fd7e14;
+  color: white;
+}
+
+.severityMedium {
+  background: #ffc107;
+  color: #212529;
+}
+
+.severityLow {
+  background: #28a745;
+  color: white;
+}
+
+.severityInfo {
+  background: #17a2b8;
+  color: white;
+}
+
+.scanTypeBadge {
+  background: #e9ecef;
+  color: #495057;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.scanTypeBadge.securityScore {
+  background: linear-gradient(135deg, #dc3545, #c82333);
+  color: white;
+  animation: pulse-critical 2s infinite;
+}
+
+.scanTypeBadge.securityIncident {
+  background: linear-gradient(135deg, #dc3545, #c82333);
+  color: white;
+  border: 1px solid #dc3545;
+}
+
+.alertCard.incidentAlert {
+  border-left-color: #dc3545;
+}
+
+.alertCardBody {
+  margin-bottom: 20px;
+}
+
+.vulnerabilityTitle {
+  margin: 0 0 12px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #212529;
+  line-height: 1.4;
+}
+
+.vulnerabilityDescription {
+  margin: 0 0 16px 0;
+  color: #6c757d;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.alertDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.detailItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #6c757d;
+}
+
+.detailItem i {
+  width: 16px;
+  color: #495057;
+}
+
+.alertCardFooter {
+  border-top: 1px solid #e9ecef;
+  padding-top: 16px;
+}
+
+.viewDetailsButton {
+  background: #dc3545;
+  color: white;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: background-color 0.2s, transform 0.2s;
+  width: 100%;
+  justify-content: center;
+}
+
+.viewDetailsButton:hover:not(:disabled) {
+  background: #c82333;
+  transform: translateY(-1px);
+}
+
+.viewDetailsButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Modal Styles */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.modalContent {
+  background: white;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 1200px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+  overflow: hidden;
+  animation: slideInModal 0.3s ease-out;
+}
+
+.modalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px;
+  background: linear-gradient(135deg, #8B0000, #400000);
+  color: white;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.modalHeaderInfo h2 {
+  margin: 0 0 4px 0;
+  font-size: 24px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.modalHeaderInfo p {
+  margin: 0;
+  opacity: 0.9;
+  font-size: 16px;
+}
+
+.modalCloseButton {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 24px;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 6px;
+  transition: background-color 0.2s;
+}
+
+.modalCloseButton:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.modalBody {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px;
+}
+
+.subdomainGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(450px, 1fr));
+  gap: 24px;
+}
+
+.subdomainCard {
+  background: white;
+  border: 1px solid #e9ecef;
+  border-radius: 12px;
+  padding: 24px;
+  transition: box-shadow 0.2s;
+}
+
+.subdomainCard:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+}
+
+.subdomainCardHeader {
+  margin-bottom: 16px;
+}
+
+.subdomainInfo {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.subdomainName {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.subdomainName strong {
+  font-size: 16px;
+  color: #212529;
+  font-family: 'Courier New', monospace;
+}
+
+.mainDomainBadge {
+  background: #28a745;
+  color: white;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.subdomainStats {
+  color: #6c757d;
+  font-size: 14px;
+}
+
+.totalCount {
+  font-weight: 600;
+}
+
+.severityBreakdown {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.severityItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px 12px;
+  border-radius: 8px;
+  min-width: 60px;
+}
+
+.severityCount {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 2px;
+}
+
+.severityLabel {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.criticalVulnsList {
+  margin-top: 20px;
+}
+
+.criticalVulnsList h5 {
+  margin: 0 0 16px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #dc3545;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.vulnList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.vulnItem {
+  background: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  padding: 16px;
+  transition: background-color 0.2s;
+}
+
+.vulnItem:hover {
+  background: #f1f3f4;
+}
+
+.vulnHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 8px;
+  gap: 12px;
+}
+
+.vulnTitle {
+  font-weight: 600;
+  color: #212529;
+  font-size: 14px;
+  flex: 1;
+}
+
+.vulnCategory {
+  background: #e9ecef;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #495057;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.vulnDescription {
+  color: #6c757d;
+  font-size: 13px;
+  margin: 0 0 12px 0;
+  line-height: 1.4;
+}
+
+.vulnFooter {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.vulnDate {
+  font-size: 12px;
+  color: #6c757d;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-family: 'Courier New', monospace;
+}
+
+/* Animations */
+@keyframes flash-warning {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideInModal {
+  from {
+    opacity: 0;
+    transform: scale(0.9) translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+  .alertsGrid {
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  }
+  
+  .subdomainGrid {
+    grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .pageContainer {
+    padding: 16px;
+  }
+  
+  .pageHeader {
+    flex-direction: column;
+    gap: 20px;
+    align-items: flex-start;
+  }
+  
+  .headerStats {
+    width: 100%;
+    justify-content: space-around;
+  }
+  
+  .filtersSection {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .searchBox {
+    min-width: auto;
+  }
+  
+  .alertsGrid {
+    grid-template-columns: 1fr;
+  }
+  
+  .subdomainGrid {
+    grid-template-columns: 1fr;
+  }
+  
+  .alertCardHeader {
+    flex-direction: column;
+    gap: 12px;
+    align-items: flex-start;
+  }
+  
+  .alertMeta {
+    flex-direction: row;
+    align-items: center;
+  }
+  
+  .modalOverlay {
+    padding: 10px;
+  }
+  
+  .modalContent {
+    width: 95%;
+    max-height: 95vh;
+  }
+  
+  .modalHeader {
+    flex-direction: column;
+    gap: 12px;
+    align-items: flex-start;
+    text-align: left;
+  }
+  
+  .modalCloseButton {
+    align-self: flex-end;
+    margin-top: -40px;
+  }
+  
+  .severityBreakdown {
+    justify-content: center;
+  }
+  
+  .vulnHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+}
+
+/* Dark mode support for Critical Alerts */
+:global(.dark-mode) .pageContainer {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+:global(.dark-mode) .pageHeader {
+  background: var(--bg-secondary);
+  border-color: var(--border-color);
+}
+
+:global(.dark-mode) .pageTitle {
+  color: var(--text-primary);
+}
+
+:global(.dark-mode) .pageDescription {
+  color: var(--text-secondary);
+}
+
+:global(.dark-mode) .statCard {
+  background: var(--bg-secondary);
+  border-color: var(--border-color);
+  color: var(--text-primary);
+}
+
+:global(.dark-mode) .statNumber {
+  color: #ff6b7a;
+}
+
+:global(.dark-mode) .statLabel {
+  color: var(--text-secondary);
+}
+
+:global(.dark-mode) .filtersSection {
+  background: var(--bg-secondary);
+  border-color: var(--border-color);
+}
+
+:global(.dark-mode) .searchBox input {
+  background: var(--bg-primary);
+  border-color: var(--border-color);
+  color: var(--text-primary);
+}
+
+:global(.dark-mode) .searchBox input::placeholder {
+  color: var(--text-secondary);
+}
+
+:global(.dark-mode) .searchBox i {
+  color: var(--text-secondary);
+}
+
+:global(.dark-mode) .filterSelect {
+  background: var(--bg-primary);
+  border-color: var(--border-color);
+  color: var(--text-primary);
+}
+
+:global(.dark-mode) .refreshButton {
+  background: var(--bg-primary);
+  border-color: var(--border-color);
+  color: var(--text-primary);
+}
+
+:global(.dark-mode) .refreshButton:hover:not(:disabled) {
+  background: var(--bg-secondary);
+}
+
+:global(.dark-mode) .alertCard {
+  background: var(--bg-secondary);
+  border-color: var(--border-color);
+}
+
+:global(.dark-mode) .vendorName {
+  color: var(--text-primary);
+}
+
+:global(.dark-mode) .domainName {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  padding: 4px 8px;
+  border-radius: 4px;
+  border: 1px solid var(--border-color);
+}
+
+:global(.dark-mode) .vulnerabilityTitle {
+  color: var(--text-primary);
+}
+
+:global(.dark-mode) .vulnerabilityDescription {
+  color: var(--text-secondary);
+}
+
+:global(.dark-mode) .detailItem {
+  color: var(--text-secondary);
+}
+
+:global(.dark-mode) .detailItem i {
+  color: var(--text-secondary);
+}
+
+:global(.dark-mode) .alertCardFooter {
+  border-color: var(--border-color);
+}
+
+/* Modal dark mode styles */
+:global(.dark-mode) .modalOverlay {
+  background: rgba(0, 0, 0, 0.8);
+}
+
+:global(.dark-mode) .modalContent {
+  background: var(--bg-secondary);
+}
+
+:global(.dark-mode) .modalHeader {
+  background: linear-gradient(135deg, #8B0000, #400000);
+}
+
+:global(.dark-mode) .modalBody {
+  background: var(--bg-secondary);
+}
+
+:global(.dark-mode) .subdomainCard {
+  background: var(--bg-primary);
+  border-color: var(--border-color);
+}
+
+:global(.dark-mode) .subdomainName strong {
+  color: var(--text-primary);
+}
+
+:global(.dark-mode) .subdomainStats {
+  color: var(--text-secondary);
+}
+
+:global(.dark-mode) .vulnItem {
+  background: var(--bg-secondary);
+  border-color: var(--border-color);
+}
+
+:global(.dark-mode) .vulnItem:hover {
+  background: var(--bg-primary);
+}
+
+:global(.dark-mode) .vulnTitle {
+  color: var(--text-primary);
+}
+
+:global(.dark-mode) .vulnDescription {
+  color: var(--text-secondary);
+}
+
+:global(.dark-mode) .vulnDate {
+  color: var(--text-secondary);
+}
+
+:global(.dark-mode) .vulnCategory {
+  background: var(--bg-primary);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
+}
+
+:global(.dark-mode) .criticalVulnsList h5 {
+  color: #ff6b7a;
+}
+
+:global(.dark-mode) .loading {
+  color: var(--text-primary);
+}
+
+:global(.dark-mode) .error {
+  color: var(--text-primary);
+}
+
+:global(.dark-mode) .noAlerts {
+  color: var(--text-primary);
+}
+
+/* Keep 'Read Full Article' button text white in dark mode */
+:global(.dark-mode) .viewDetailsButton {
+  color: white !important;
+  background: #dc3545;
+}
+
+:global(.dark-mode) .viewDetailsButton:hover:not(:disabled) {
+  color: white !important;
+  background: #c82333;
+}
+
+:global(.dark-mode) .alertCard:hover {
+  border-color: #dc3545;
+}
+
+:global(.dark-mode) .alertHeader h3 {
+  color: var(--text-primary);
+}
+
+:global(.dark-mode) .alertMeta {
+  color: var(--text-secondary);
+}
+
+:global(.dark-mode) .alertDescription {
+  color: var(--text-primary);
+}
+
+:global(.dark-mode) .alertFooter {
+  border-top-color: var(--border-color);
+}
+
+:global(.dark-mode) .severityCritical {
+  background: #dc3545;
+  color: white;
+}
+
+:global(.dark-mode) .scanTypeBadge {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  border-color: var(--border-color);
+}
+
+:global(.dark-mode) .scanTypeBadge.securityScore {
+  background: linear-gradient(135deg, #dc3545, #c82333);
+  color: white;
+}
+
+:global(.dark-mode) .viewDetailsButton {
+  background: #dc3545;
+  color: white;
+  border-color: #b91c1c;
+}
+
+:global(.dark-mode) .viewDetailsButton:hover:not(:disabled) {
+  background: #c82333;
+}
+
+:global(.dark-mode) .modalOverlay {
+  background: rgba(0, 0, 0, 0.8);
+}
+
+:global(.dark-mode) .modalContent {
+  background: var(--bg-secondary);
+  border-color: var(--border-color);
+  color: var(--text-primary);
+}
+
+:global(.dark-mode) .modalHeader {
+  background: var(--bg-primary);
+  border-bottom-color: var(--border-color);
+}
+
+:global(.dark-mode) .modalHeader h2 {
+  color: var(--text-primary);
+}
+
+:global(.dark-mode) .modalHeader p {
+  color: var(--text-secondary);
+}
+
+:global(.dark-mode) .modalCloseButton {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  border-color: var(--border-color);
+}
+
+:global(.dark-mode) .modalCloseButton:hover {
+  background: #dc3545;
+  color: white;
+}
+
+:global(.dark-mode) .subdomainCard {
+  background: var(--bg-primary);
+  border-color: var(--border-color);
+  color: var(--text-primary);
+}
+
+:global(.dark-mode) .subdomainName {
+  color: var(--text-primary);
+}
+
+:global(.dark-mode) .subdomainMeta {
+  color: var(--text-secondary);
+}
+
+:global(.dark-mode) .noAlerts {
+  color: var(--text-secondary);
+}
+
+:global(.dark-mode) .loading {
+  color: var(--text-secondary);
+}
+
+:global(.dark-mode) .error {
+  background: rgba(220, 53, 69, 0.1);
+  border-color: #dc3545;
+  color: #f87171;
+} 

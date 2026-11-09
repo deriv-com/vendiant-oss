@@ -1,0 +1,28 @@
+# Development override: runs the frontend with `next dev` and mock auth, so
+# you can use the dashboard without an SSO gateway.
+#
+#   docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build
+#   podman compose -f docker-compose.yml -f docker-compose.dev.yml up --build
+#
+# Every request is signed in as an admin (dev@localhost). NEVER use this file
+# for a deployment that anyone else can reach. The plain `docker compose up`
+# stack is unaffected and always requires SSO.
+#
+# The source is copied into the image, so rebuild after changing frontend
+# code. For live reload, run `ENABLE_MOCK_AUTH=true npm run dev` on the host
+# instead (bind-mounting the source hangs `next dev` under Podman on macOS).
+
+services:
+  frontend:
+    build:
+      target: dev
+    image: vendiant-frontend-dev:latest
+    environment:
+      NODE_ENV: development
+      ENABLE_MOCK_AUTH: "true"
+      # Mock auth only applies when no JWKS URL is set.
+      SSO_JWKS_URL: ""
+      INTERNAL_API_URL_DEVELOPMENT: http://backend:5005
+    # Drop the production log volumes: next dev hangs at "Starting..." when
+    # volumes are mounted inside its project directory.
+    volumes: !reset []

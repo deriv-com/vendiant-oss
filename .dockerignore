@@ -1,0 +1,97 @@
+# Frontend directory (not needed for backend)
+frontend/
+
+# Log files across the project
+*.log
+**/logs/
+Dashboard/flask_output.log
+Dashboard/custom_integrations/logs/
+custom_integrations/logs/
+frontend_output.log
+
+# Python cache files
+**/__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+
+# Virtual environments
+myenv/
+venv/
+env/
+ENV/
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Git files
+.git/
+.gitignore
+
+Documentation files (optional - uncomment if you want to exclude)
+*.md
+README.md
+Dashboard/DASHBOARD_SETUP.md
+Dashboard/OVERALL_SCORE_UPDATE_SUMMARY.md
+
+# Temporary files
+*.tmp
+*.temp
+
+# Build artifacts
+build/
+dist/
+
+# Node.js files (from frontend)
+**/node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+
+# Test files
+test/
+tests/
+*_test.py
+test_*.py
+
+# Coverage reports
+htmlcov/
+.coverage
+.coverage.*
+coverage.xml
+
+# Environment files (be careful with these)
+.env
+.env.local
+.env.*.local
+
+# Backup and build scripts (not needed in container)
+backup-script
+build-and-run.sh
+podman-build.sh
+podman-commands.sh
+
+# Docker compose files (not needed in container)
+docker-compose.yml
+
+# Config files that aren't needed in runtime
+crontab-config.txt
+
+# Large virtual environment directory (not needed - using container's venv)
+myenv/

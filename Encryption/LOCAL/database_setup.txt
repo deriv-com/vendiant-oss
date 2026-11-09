@@ -1,0 +1,65 @@
+# Database Setup Instructions for Vendor Risk Scanner LOCAL
+
+## Prerequisites
+1. PostgreSQL server running with the Vendiant database
+2. Python psycopg2 library installed
+
+## Installation Steps
+
+### 1. Install Database Dependencies
+```bash
+pip install -r requirements_database.txt
+```
+
+### 2. Configure Environment Variables
+Set the following environment variables in your shell or create a .env file:
+
+```bash
+# Enable database integration
+export ENABLE_DATABASE=true
+
+# PostgreSQL connection settings
+export DB_HOST=localhost
+export DB_PORT=5435
+export DB_NAME=vendiant
+export DB_USER=your_db_user
+export DB_PASSWORD=your_password_here
+
+# Prevent OpenAI errors from other components
+export OPENAI_API_KEY=dummy-key-not-used
+```
+
+### 3. Test Database Connection
+```bash
+cd Vendiant/Encryption/LOCAL
+python3 vendiant_db_connector.py
+```
+
+### 4. Run Scanner with Database Integration
+```bash
+ENABLE_DATABASE=true python3 scanner_test_and_demo_local.py
+```
+
+## Database Integration Features
+
+When enabled, the scanner will automatically:
+- Create vendor records for new domains
+- Save risk scores by category (Encryption, Website, DNS)
+- Store vulnerabilities with proper categorization
+- Update vendor overall scores
+- Log all database operations
+
+## Troubleshooting
+
+### Database Connection Issues
+- Verify PostgreSQL is running: `pg_isready -h localhost`
+- Check database exists: `psql -h localhost -U your_db_user -d vendiant -c "\dt"`
+- Verify schema is loaded (vendors, scores, vulnerabilities, subdomains tables exist)
+
+### Missing Dependencies
+- Install psycopg2: `pip install psycopg2-binary`
+- If binary fails, try: `pip install psycopg2`
+
+### Database Disabled
+- If database integration is disabled, the scanner runs normally without database storage
+- All text report functionality remains unchanged 

@@ -1,0 +1,57 @@
+#!/usr/bin/env bash
+# Dumps the postgres container to a timestamped, gzipped file and keeps the
+# 10 most recent. Override any of these via the environment.
+POSTGRES_CONTAINER="${POSTGRES_CONTAINER:-vendiant-postgres}"
+DB_USER="${DB_USER:-vendiant}"
+DB_NAME="${DB_NAME:-vendiant}"
+PROJECT_DIR="${PROJECT_DIR:-$(cd "$(dirname "$0")/.." && pwd)}"
+INSTANCE_BACKUP_DIR="${BACKUP_DIR:-${PROJECT_DIR}/Postgress/backups/database}"
+LATEST_BACKUP_PATH="${LATEST_BACKUP_PATH:-${INSTANCE_BACKUP_DIR}/latest.sql}"
+# Generate timestamp for unique filename
+TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
+BACKUP_FILENAME="vendiant_backup_${TIMESTAMP}.sql.gz"
+# Create backup directory if it doesn't exist
+mkdir -p "${INSTANCE_BACKUP_DIR}"
+# Run pg_dump inside the container
+echo "Starting database backup at $(date)..."
+docker exec ${POSTGRES_CONTAINER} sh -c "pg_dump -U ${DB_USER} ${DB_NAME} | gzip > /tmp/${BACKUP_FILENAME}"
+# Check if backup was successful
+if [ $? -eq 0 ]; then
+    echo "Backup created successfully"
+    
+    # Copy the backup from container to host
+    docker cp ${POSTGRES_CONTAINER}:/tmp/${BACKUP_FILENAME} ${INSTANCE_BACKUP_DIR}/${BACKUP_FILENAME}
+    
+    if [ $? -eq 0 ]; then
+        echo "Backup copied successfully to ${INSTANCE_BACKUP_DIR}/${BACKUP_FILENAME}"
+        
+        # Clean up the backup from the container
+        docker exec ${POSTGRES_CONTAINER} rm -f /tmp/${BACKUP_FILENAME}
+        
+        # Copy and decompress the latest backup to the specified path
+        echo "Creating latest backup copy at ${LATEST_BACKUP_PATH}..."
+        gunzip -c "${INSTANCE_BACKUP_DIR}/${BACKUP_FILENAME}" > "${LATEST_BACKUP_PATH}"
+        
+        if [ $? -eq 0 ]; then
+            echo "Latest backup copied to ${LATEST_BACKUP_PATH}"
+        else
+            echo "WARNING: Failed to copy latest backup to ${LATEST_BACKUP_PATH}"
+        fi
+        
+        # Keep only the 10 most recent backup files
+        echo "Cleaning up old backups..."
+        cd "${INSTANCE_BACKUP_DIR}"
+        ls -t vendiant_backup_*.sql.gz 2>/dev/null | tail -n +11 | xargs -r rm -f
+        
+        BACKUP_COUNT=$(ls -1 vendiant_backup_*.sql.gz 2>/dev/null | wc -l)
+        echo "Current backup count: ${BACKUP_COUNT}"
+        
+        echo "Database backup completed at $(date)!"
+    else
+        echo "ERROR: Failed to copy backup from container"
+        exit 1
+    fi
+else
+    echo "ERROR: Backup failed!"
+    exit 1
+fi

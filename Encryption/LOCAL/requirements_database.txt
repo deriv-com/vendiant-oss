@@ -1,0 +1,8 @@
+# Database Integration Dependencies for Vendor Risk Scanner LOCAL
+# Install with: pip install -r requirements_database.txt
+
+# PostgreSQL adapter for Python
+psycopg2-binary>=2.9.0
+
+# Alternative if psycopg2-binary has issues:
+# psycopg2>=2.9.0 
