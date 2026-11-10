@@ -174,3 +174,11 @@ Keep it that way: breach exports contain personal data.
   user is in none of the configured groups; check `SSO_*` and
   `NEXT_PUBLIC_SSO_GROUP_*`.
 - `psycopg2` build errors: `psycopg2-binary` is already pinned.
+
+## Contributing, security and license
+
+- [CONTRIBUTING.md](CONTRIBUTING.md) — development setup and PR guidelines
+- [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) — Contributor Covenant 2.1
+- [SECURITY.md](SECURITY.md) — report vulnerabilities privately, never via public issues
+- [LICENSE](LICENSE) — MIT. Third-party components keep their own licenses (Sublist3r and
+  testssl.sh are GPL-2.0); see [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
