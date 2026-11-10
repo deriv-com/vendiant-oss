@@ -1,6 +1,7 @@
 # Frontend Dockerfile for Vendiant Next.js Application
 # Pin to specific digest for security and reproducibility
-FROM node:18-alpine@sha256:8d6421d663b4c28fd3ebc498332f249011d118945588d0a35cb9bc4b8ca09d9e AS base
+# CVE-2026-111497 (Node2Shell, Brotli OOB write): Node 18 is EOL; use 24.x >= 24.22.1.
+FROM node:24.22.2-alpine@sha256:a34ab6d7f6f4813f4d0c5469d74685604b962fbdbf5793a7bc7b4998ecb867c8 AS base
 
 # CVE-2025-15467: stack buffer overflow in CMS AuthEnvelopedData parsing (OpenSSL 3.x).
 # Upgrade Alpine openssl packages to >= 3.3.6-r0 before application layers.
