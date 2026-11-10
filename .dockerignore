@@ -95,3 +95,7 @@ crontab-config.txt
 
 # Large virtual environment directory (not needed - using container's venv)
 myenv/
+
+# testssl.sh is cloned at a pinned commit inside the image build; never copy a
+# developer's local checkout into the image
+Encryption/LOCAL/testssl.sh/

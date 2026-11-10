@@ -98,11 +98,18 @@ createdb vendiant && psql -d vendiant -f Postgress/init-scripts/schema.sql
 
 System tools used by the scanners: `dig`, `nslookup`, `whois`, `curl`,
 `wget`, `openssl` (`apt-get install dnsutils whois curl wget openssl` or
-`brew install bind`). For TLS scanning clone testssl.sh:
+`brew install bind`). For TLS scanning, fetch testssl.sh (GPLv2, not
+vendored in this repo) at the same pinned commit the Docker image uses
+(`TESTSSL_COMMIT` in `Dashboard/Dockerfile`, upstream tag `v3.2.5`):
 
 ```bash
-cd Encryption/LOCAL && git clone --depth 1 https://github.com/drwetter/testssl.sh.git
+cd Encryption/LOCAL
+git clone https://github.com/testssl/testssl.sh.git
+git -C testssl.sh checkout --detach 4f17be931a9d60f3f987975aea8221f1a8eaf7aa
 ```
+
+`Encryption/LOCAL/testssl.sh/` and scanner output files are gitignored; don't
+commit either.
 
 Optional: `nmap` if you choose the nmap network provider.
 

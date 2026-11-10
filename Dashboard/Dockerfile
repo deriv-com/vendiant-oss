@@ -60,6 +60,20 @@ ENV VIRTUAL_ENV="/app/venv"
 # Copy the entire Vendiant directory structure (needed for imports)
 COPY . /app/
 
+# Fetch testssl.sh (GPLv2, https://github.com/testssl/testssl.sh) at a pinned
+# commit instead of vendoring it. TESTSSL_COMMIT is the commit the v3.2.5 tag
+# points to; the checkout fails the build if upstream ever rewrites it.
+# Upstream's bundled openssl binaries (bin/openssl.*) are deleted so testssl.sh
+# uses the Debian-packaged openssl installed above (known provenance, patched
+# by apt). Upstream LICENSE stays in the directory alongside the code.
+ARG TESTSSL_REPO=https://github.com/testssl/testssl.sh.git
+ARG TESTSSL_COMMIT=4f17be931a9d60f3f987975aea8221f1a8eaf7aa
+RUN git clone --quiet --filter=blob:none --no-checkout "$TESTSSL_REPO" /app/Encryption/LOCAL/testssl.sh && \
+    git -C /app/Encryption/LOCAL/testssl.sh checkout --quiet --detach "$TESTSSL_COMMIT" && \
+    test "$(git -C /app/Encryption/LOCAL/testssl.sh rev-parse HEAD)" = "$TESTSSL_COMMIT" && \
+    rm -rf /app/Encryption/LOCAL/testssl.sh/.git /app/Encryption/LOCAL/testssl.sh/bin/openssl.* && \
+    /app/Encryption/LOCAL/testssl.sh/testssl.sh --version >/dev/null
+
 # Set working directory to Dashboard for Flask app
 WORKDIR /app/Dashboard
 
