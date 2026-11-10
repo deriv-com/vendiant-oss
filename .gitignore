@@ -249,3 +249,15 @@ yarn-error.log*
 
 # Accidental nested frontend build tree under Dashboard (deps + .next only)
 Dashboard/frontend/
+
+# Third-party: testssl.sh is fetched at a pinned commit (see Dashboard/Dockerfile
+# and README), never vendored. Keeps GPLv2 code and prebuilt openssl binaries
+# out of this repo.
+Encryption/LOCAL/testssl.sh/
+
+# Scanner output -- never commit real target results
+Encryption/LOCAL/*_RESULTS*.txt
+Encryption/LOCAL/*_results*.txt
+Encryption/LOCAL/*_results*.json
+Encryption/LOCAL/vendor_risk_summary_with_averaging.*
+Encryption/LOCAL/*.json
