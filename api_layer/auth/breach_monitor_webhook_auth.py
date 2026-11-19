@@ -7,7 +7,7 @@ are accepted (``X-API-Key`` or ``Authorization: Bearer vnd_...``).
 
 from __future__ import annotations
 
-import hmac
+import hashlib
 import logging
 import secrets
 import threading
@@ -50,7 +50,14 @@ _webhook_key_cache_lock = threading.Lock()
 
 
 def _cache_digest(api_key: str) -> str:
-    return hmac.digest(_CACHE_PEPPER, api_key.encode("utf-8"), "sha256").hex()
+    # Derive a deterministic cache index from the API key using a
+    # computationally expensive KDF to avoid fast-hash usage on sensitive data.
+    return hashlib.pbkdf2_hmac(
+        "sha256",
+        api_key.encode("utf-8"),
+        _CACHE_PEPPER,
+        600_000,
+    ).hex()
 
 
 def _cache_get(digest: str) -> Optional[bool]:
