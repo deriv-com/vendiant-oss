@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import hashlib
 import logging
+import secrets
 import threading
 import time
 from typing import Any, Dict, Mapping, Optional, Tuple
@@ -39,15 +40,24 @@ _api_key_manager: Optional[APIKeyManager] = None
 # routes/breach_monitor_webhook.py), this cache mainly cuts DB load and Argon2 CPU
 # time under burst traffic rather than event-loop blocking.
 #
-# Keyed by SHA-256 of the raw key (not the raw key itself) so a copy of the
-# key never lingers in process memory longer than necessary.
+# Keyed by an HMAC of the raw key (not the raw key itself) so a copy of the
+# key never lingers in process memory longer than necessary. This is a cache
+# index only. validate_api_key() still verifies the key with Argon2id.
 _WEBHOOK_KEY_CACHE_TTL_SECONDS = 60
+_CACHE_PEPPER = secrets.token_bytes(32)
 _webhook_key_cache: Dict[str, Tuple[bool, float]] = {}
 _webhook_key_cache_lock = threading.Lock()
 
 
 def _cache_digest(api_key: str) -> str:
-    return hashlib.sha256(api_key.encode("utf-8")).hexdigest()
+    # Derive a deterministic cache index from the API key using a
+    # computationally expensive KDF to avoid fast-hash usage on sensitive data.
+    return hashlib.pbkdf2_hmac(
+        "sha256",
+        api_key.encode("utf-8"),
+        _CACHE_PEPPER,
+        600_000,
+    ).hex()
 
 
 def _cache_get(digest: str) -> Optional[bool]:

@@ -1352,4 +1352,4 @@ def generate_pdf_report(report_data):
         return f"PDF generation requires ReportLab library. Please install it first.\nReport data for {report_data['domain']} is available but cannot be converted to PDF.".encode('utf-8')
     except Exception as e:
         logging.error(f"Error generating PDF: {e}")
-        return f"Error generating PDF report: {str(e)}".encode('utf-8')
+        return b"Error generating PDF report."

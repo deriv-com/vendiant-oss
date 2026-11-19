@@ -184,7 +184,7 @@ class APIKeyManager:
                     key_id = cursor.fetchone()[0]
                     conn.commit()
                     
-                    logger.info(f"Generated API key {key_prefix}... for {name}")
+                    logger.info("Generated API key for %s", name)
                     return full_key, str(key_id)
                     
         except Exception as e:
@@ -231,7 +231,7 @@ class APIKeyManager:
                     
                     # Check if expired
                     if credential['expires_at'] and credential['expires_at'] < datetime.now():
-                        logger.warning(f"API key {api_key[:15]}... has expired")
+                        logger.warning("API key id %s has expired", credential["id"])
                         return None
                     
                     # Update last accessed time

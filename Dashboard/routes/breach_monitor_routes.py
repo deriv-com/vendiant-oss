@@ -389,11 +389,11 @@ def collect_breach_monitor_results_from_json_files() -> List[Dict[str, Any]]:
                 chunk = _extract_results_from_file_payload(file_data)
                 if chunk:
                     all_results.extend(chunk)
-            except json.JSONDecodeError as e:
-                print(f"Error loading JSON from {data_file}: {e}")
+            except json.JSONDecodeError:
+                print("Error loading JSON from a fallback breach file")
                 continue
-            except Exception as e:
-                print(f"Error reading {data_file}: {e}")
+            except Exception:
+                print("Error reading a fallback breach file")
                 continue
 
     return all_results
@@ -1516,6 +1516,6 @@ async def breach_monitor_health() -> Dict[str, Any]:
         return {
             "status": 503,
             "healthy": False,
-            "error": str(e)
+            "error": "Breach Monitor health check failed"
         }
 

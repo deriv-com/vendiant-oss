@@ -95,5 +95,5 @@ def get_resume_scan_info_sync():
             'status': 'error',
             'can_resume': False,
             'checkpoint_vendor': '',
-            'message': f'Error getting resume info: {str(e)}',
+            'message': 'Error getting resume info',
         }

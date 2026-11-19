@@ -442,7 +442,7 @@ CRITICAL: You MUST complete ALL three sections (VENDOR_OVERVIEW, SECURITY_POSTUR
                 'status': 'error',
                 'message': 'Unable to generate insights',
                 'insights': None,
-                'error': str(ai_error)
+                'error': 'Unable to generate insights'
             }
             
     except HTTPException:

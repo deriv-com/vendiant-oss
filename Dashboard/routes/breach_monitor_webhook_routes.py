@@ -61,7 +61,7 @@ async def ingest_breach_monitor_webhook(
         return _internal_webhook_response(
             status.HTTP_400_BAD_REQUEST,
             status_label="error",
-            message=str(exc),
+            message="Invalid Breach Monitor webhook payload",
         )
     except Exception as exc:
         logger.exception("Breach Monitor webhook ingestion failed")

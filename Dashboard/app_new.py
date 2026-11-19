@@ -609,7 +609,7 @@ async def add_vendor(data: dict = Body(...)):
         # - Standard domains: example.com, example.org
         # - Second-level domains: example.co.uk, example.org.uk, example.com.au
         # - Subdomains: sub.example.com (though we clean these out)
-        domain_pattern = r'^[a-zA-Z0-9][a-zA-Z0-9-]*[a-zA-Z0-9]*\.([a-zA-Z]{2,}\.)?[a-zA-Z]{2,}$'
+        domain_pattern = r'^[a-zA-Z0-9][a-zA-Z0-9-]*\.([a-zA-Z]{2,}\.)?[a-zA-Z]{2,}$'
         if not re.match(domain_pattern, domain):
             logging.warning(f"Invalid domain format: {domain}")
             raise HTTPException(
@@ -681,7 +681,7 @@ async def add_vendor(data: dict = Body(...)):
                         'message': f'Vendor "{vendor_name}" added successfully. Note: Automatic scan could not be started.',
                         'vendor': result['vendor'],
                         'auto_scan_started': False,
-                        'scan_error': str(scan_error)
+                        'scan_error': 'Automatic scan could not be started'
                     }
             else:
                 # No automatic scan requested
@@ -3120,7 +3120,7 @@ async def get_vulnerability_report(domain: str, include_incidents: str = Query(d
                     'summary': 'Unable to fetch incidents data',
                     'incidents': [],
                     'news': [],
-                    'notes': f'Error fetching incidents: {str(incidents_error)}'
+                    'notes': 'Error fetching incidents'
                 }
         else:
             # Provide placeholder structure for frontend compatibility
@@ -3363,7 +3363,7 @@ async def start_email_scan(data: dict = Body(...)):
                 save_email_vulnerabilities(domain, [], update_existing=True)
         except Exception as db_error:
             logging.error(f"Database save error for email scan: {db_error}")
-            db_status = f"Database save failed: {db_error}"
+            db_status = "Database save failed"
         
         # Log email scan summary for transparency
         logging.info(f"EMAIL SCAN SUMMARY:")
