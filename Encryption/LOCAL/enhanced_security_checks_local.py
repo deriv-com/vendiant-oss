@@ -27,6 +27,7 @@ class EnhancedSecurityChecker:
         logger.info(f"Checking SSL availability for {domain}:{port}")
         try:
             context = ssl.create_default_context()
+            context.minimum_version = ssl.TLSVersion.TLSv1_2
             context.check_hostname = False  # We'll check hostname separately
             context.verify_mode = ssl.CERT_NONE  # Don't verify cert for availability check
             
@@ -53,6 +54,7 @@ class EnhancedSecurityChecker:
         try:
             import fnmatch
             context = ssl.create_default_context()
+            context.minimum_version = ssl.TLSVersion.TLSv1_2
             context.check_hostname = False  # We want to manually check hostname
             context.verify_mode = ssl.CERT_OPTIONAL  # Get cert even if invalid or self-signed 
             with socket.create_connection((domain, port), timeout=self.timeout) as sock:

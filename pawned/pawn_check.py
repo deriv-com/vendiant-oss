@@ -149,6 +149,7 @@ class HaveIBeenPwnedChecker:
             
             # Create SSL context that doesn't verify certificates (for RSS feeds)
             ssl_context = ssl.create_default_context()
+            ssl_context.minimum_version = ssl.TLSVersion.TLSv1_2
             ssl_context.check_hostname = False
             ssl_context.verify_mode = ssl.CERT_NONE
             
