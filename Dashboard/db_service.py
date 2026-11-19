@@ -3275,7 +3275,7 @@ def add_subdomain_to_exclusion_list(vendor_id, subdomain):
                 
     except Exception as e:
         logger.error(f"Error excluding subdomain '{subdomain}' for vendor {vendor_id}: {e}")
-        return {"success": False, "error": str(e)}
+        return {"success": False, "error": "Failed to exclude subdomain"}
 
 
 def remove_subdomain_from_exclusion_list(vendor_id, subdomain):
@@ -3308,7 +3308,7 @@ def remove_subdomain_from_exclusion_list(vendor_id, subdomain):
                 
     except Exception as e:
         logger.error(f"Error removing subdomain '{subdomain}' from exclusion list for vendor {vendor_id}: {e}")
-        return {"success": False, "error": str(e)}
+        return {"success": False, "error": "Failed to remove subdomain from exclusion list"}
 
 
 def get_excluded_subdomains_for_vendor(vendor_id):
@@ -3339,7 +3339,7 @@ def get_excluded_subdomains_for_vendor(vendor_id):
                 
     except Exception as e:
         logger.error(f"Error retrieving excluded subdomains for vendor {vendor_id}: {e}")
-        return {"success": False, "error": str(e)}
+        return {"success": False, "error": "Failed to retrieve excluded subdomains"}
 
 
 def get_excluded_subdomains_set(vendor_id):
