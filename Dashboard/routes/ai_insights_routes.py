@@ -441,8 +441,7 @@ CRITICAL: You MUST complete ALL three sections (VENDOR_OVERVIEW, SECURITY_POSTUR
             return {
                 'status': 'error',
                 'message': 'Unable to generate insights',
-                'insights': None,
-                'error': str(ai_error)
+                'insights': None
             }
             
     except HTTPException:

@@ -390,10 +390,10 @@ def collect_breach_monitor_results_from_json_files() -> List[Dict[str, Any]]:
                 if chunk:
                     all_results.extend(chunk)
             except json.JSONDecodeError as e:
-                print(f"Error loading JSON from {data_file}: {e}")
+                print(f"Error loading JSON from breach data file: {type(e).__name__}")
                 continue
             except Exception as e:
-                print(f"Error reading {data_file}: {e}")
+                print(f"Error reading breach data file: {type(e).__name__}")
                 continue
 
     return all_results
@@ -1516,6 +1516,6 @@ async def breach_monitor_health() -> Dict[str, Any]:
         return {
             "status": 503,
             "healthy": False,
-            "error": str(e)
+            "error": "Breach Monitor health check failed"
         }
 

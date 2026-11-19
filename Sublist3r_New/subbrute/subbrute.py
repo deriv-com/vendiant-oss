@@ -356,7 +356,7 @@ class lookup(multiprocessing.Process):
 #Extract relevant hosts
 #The dot at the end of a domain signifies the root,
 #and all TLDs are subs of the root.
-host_match = re.compile(r"((?<=[\s])[a-zA-Z0-9_-]+\.(?:[a-zA-Z0-9_-]+\.?)+(?=[\s]))")
+host_match = re.compile(r"((?<=[\s])[a-zA-Z0-9_-]+\.[a-zA-Z0-9_-]+(?:\.[a-zA-Z0-9_-]+)*\.?(?=[\s]))")
 def extract_hosts(data, hostname):
     #made a global to avoid re-compilation
     global host_match

@@ -330,8 +330,8 @@ async def validate_domain_for_update(vendor_id: int, domain: str, _: None = Depe
         from db_config import DatabaseConnection
         
         # Enhanced domain format validation to support second-level domains (e.g., .co.uk, .org.uk)
-        domain_pattern = r'^[a-zA-Z0-9][a-zA-Z0-9-]*[a-zA-Z0-9]*\.([a-zA-Z]{2,}\.)?[a-zA-Z]{2,}$'
-        if not re.match(domain_pattern, domain):
+        domain_pattern = r'^[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?\.(?:[a-zA-Z]{2,}\.)?[a-zA-Z]{2,}$'
+        if len(domain) > 253 or not re.match(domain_pattern, domain):
             return {
                 'valid': False,
                 'message': 'Invalid domain format. Supported formats: example.com, example.co.uk, etc.'

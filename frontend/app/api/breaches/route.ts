@@ -9,10 +9,19 @@ export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const vendorId = searchParams.get('vendorId');
-    
+
+    // vendorId is user-controlled and is interpolated into a backend URL path,
+    // so only accept a plain numeric id (blocks path traversal / host injection).
+    if (vendorId !== null && !/^\d{1,18}$/.test(vendorId)) {
+      return NextResponse.json(
+        { status: 'error', message: 'Invalid vendorId', matches: [] },
+        { status: 400 }
+      );
+    }
+
     // Determine which backend endpoint to call
-    const backendEndpoint = vendorId 
-      ? `${BACKEND_URL}/api/breaches/matches/${vendorId}`
+    const backendEndpoint = vendorId
+      ? `${BACKEND_URL}/api/breaches/matches/${encodeURIComponent(vendorId)}`
       : `${BACKEND_URL}/api/breaches/check`;
     
     const response = await fetch(backendEndpoint, {
@@ -34,7 +43,7 @@ export async function GET(request: Request) {
     
     return NextResponse.json({
       status: 'error',
-      message: `Failed to check breaches: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      message: 'Failed to check breaches',
       matches: []
     }, { status: 500 });
   }

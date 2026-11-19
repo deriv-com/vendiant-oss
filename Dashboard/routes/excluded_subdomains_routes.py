@@ -32,7 +32,7 @@ async def get_excluded_subdomains_api(vendor_id: int, _: None = Depends(require_
         if result['success']:
             return result
         else:
-            raise HTTPException(status_code=400, detail=result.get('error', 'Failed to get excluded subdomains'))
+            raise HTTPException(status_code=400, detail='Failed to get excluded subdomains')
             
     except HTTPException:
         raise
@@ -64,7 +64,7 @@ async def add_excluded_subdomain_api(
             
             return result
         else:
-            raise HTTPException(status_code=400, detail=result.get('error', 'Failed to add excluded subdomain'))
+            raise HTTPException(status_code=400, detail='Failed to add excluded subdomain')
             
     except HTTPException:
         raise
@@ -96,7 +96,7 @@ async def remove_excluded_subdomain_api(
             
             return result
         else:
-            raise HTTPException(status_code=400, detail=result.get('error', 'Failed to remove excluded subdomain'))
+            raise HTTPException(status_code=400, detail='Failed to remove excluded subdomain')
             
     except HTTPException:
         raise

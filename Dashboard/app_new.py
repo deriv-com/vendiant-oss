@@ -609,14 +609,14 @@ async def add_vendor(data: dict = Body(...)):
         # - Standard domains: example.com, example.org
         # - Second-level domains: example.co.uk, example.org.uk, example.com.au
         # - Subdomains: sub.example.com (though we clean these out)
-        domain_pattern = r'^[a-zA-Z0-9][a-zA-Z0-9-]*[a-zA-Z0-9]*\.([a-zA-Z]{2,}\.)?[a-zA-Z]{2,}$'
-        if not re.match(domain_pattern, domain):
-            logging.warning(f"Invalid domain format: {domain}")
+        domain_pattern = r'^[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?\.(?:[a-zA-Z]{2,}\.)?[a-zA-Z]{2,}$'
+        if len(domain) > 253 or not re.match(domain_pattern, domain):
+            logging.warning("Invalid domain format supplied")
             raise HTTPException(
                 status_code=400,
                 detail='Invalid domain format. Supported formats: example.com, example.co.uk, etc.'
             )
-        
+
         # Add vendor using database service
         logging.info("Calling add_new_vendor function")
         result = add_new_vendor(vendor_name, domain, tier, portfolio, industry)
@@ -680,8 +680,7 @@ async def add_vendor(data: dict = Body(...)):
                         'success': True,
                         'message': f'Vendor "{vendor_name}" added successfully. Note: Automatic scan could not be started.',
                         'vendor': result['vendor'],
-                        'auto_scan_started': False,
-                        'scan_error': str(scan_error)
+                        'auto_scan_started': False
                     }
             else:
                 # No automatic scan requested
@@ -700,7 +699,7 @@ async def add_vendor(data: dict = Body(...)):
             status_code = 409 if 'already exists' in result['error'] else 500
             raise HTTPException(
                 status_code=status_code,
-                detail=result['error']
+                detail='Vendor already exists' if status_code == 409 else 'Failed to add vendor'
             )
             
     except HTTPException:
@@ -709,7 +708,7 @@ async def add_vendor(data: dict = Body(...)):
         logging.error(f"Error adding vendor: {str(e)}", exc_info=True)
         raise HTTPException(
             status_code=500,
-            detail=f'Server error: {str(e)}'
+            detail='Internal server error'
         )
 
 @app.delete('/api/vendors/{vendor_id}')
@@ -3196,7 +3195,7 @@ async def get_vulnerability_report(domain: str, include_incidents: str = Query(d
         logging.error(f"Error generating vulnerability report for {domain}: {str(e)}")
         raise HTTPException(
             status_code=500,
-            detail=f'Failed to generate vulnerability report: {str(e)}'
+            detail='Failed to generate vulnerability report'
         )
 
 @app.get('/api/vulnerabilities/report/{domain}/incidents')
@@ -3410,7 +3409,7 @@ async def start_email_scan(data: dict = Body(...)):
         logging.error(f"Error starting email security scan: {e}")
         raise HTTPException(
             status_code=500,
-            detail=str(e)
+            detail='Failed to run email security scan'
         )
 
 
@@ -3871,7 +3870,7 @@ async def get_resume_scan_info():
 
     except Exception as e:
         logging.error(f"Error in resume scan info endpoint: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Failed to get resume info: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to get resume info")
 
 @app.get('/api/background-scan/list')
 async def list_background_scans():

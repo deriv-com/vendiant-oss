@@ -183,16 +183,14 @@ def send_slack_notification(
         )
         
         if response.status_code == 200:
-            logger.info(f"Successfully sent Slack notification: {text}")
+            logger.info("Successfully sent Slack notification")
             
             # Note: Alert sending status is now tracked in source tables with slack_alert_sent_at columns
             # No need for separate critical_slack_alerts tracking table
             
             return True
         else:
-            logger.error(f"Failed to send Slack notification. Status: {response.status_code}, Response: {response.text}")
-            # Log the payload for debugging
-            logger.error(f"Failed payload (first 500 chars): {payload_str[:500]}")
+            logger.error(f"Failed to send Slack notification. Status: {response.status_code}")
             return False
             
     except Exception as e:
@@ -1572,11 +1570,7 @@ def send_breach_monitor_scheduled_sync_new_leaks_alert(
                 try:
                     if ignore_svc.should_suppress(raw_email, incident, password):
                         suppressed += 1
-                        logger.info(
-                            "Breach Monitor Slack alert suppressed by ignore list: email_domain=%s incident=%s",
-                            raw_email.split("@")[-1] if "@" in raw_email else "unknown",
-                            incident or "(all)",
-                        )
+                        logger.info("Breach Monitor Slack alert suppressed by ignore list")
                         continue
                 except Exception as _se:
                     logger.warning("Ignore-list check failed for alert; sending anyway: %s", _se)
@@ -1668,7 +1662,7 @@ def send_api_key_alert(action: str, api_key_name: str, user_email: str, timestam
         bool: True if successful, False otherwise
     """
     try:
-        logger.info(f"Sending API key alert: {action} - {api_key_name} by {user_email}")
+        logger.info(f"Sending API key alert: {action}")
 
         # Create a custom format for API key notifications
         blocks = []

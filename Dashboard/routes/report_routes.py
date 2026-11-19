@@ -176,7 +176,7 @@ async def export_report_to_pdf(
         logging.error(f"Error exporting PDF report for {domain}: {str(e)}")
         raise HTTPException(
             status_code=500,
-            detail=f'Failed to export PDF report: {str(e)}'
+            detail='Failed to export PDF report'
         )
 @router.get('/api/scores/{domain}')
 async def get_domain_scores(domain: str, _: None = Depends(require_view_vendor_reports)):

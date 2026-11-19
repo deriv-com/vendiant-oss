@@ -8,7 +8,9 @@ are accepted (``X-API-Key`` or ``Authorization: Bearer vnd_...``).
 from __future__ import annotations
 
 import hashlib
+import hmac
 import logging
+import secrets
 import threading
 import time
 from typing import Any, Dict, Mapping, Optional, Tuple
@@ -46,8 +48,12 @@ _webhook_key_cache: Dict[str, Tuple[bool, float]] = {}
 _webhook_key_cache_lock = threading.Lock()
 
 
+_CACHE_HMAC_KEY = secrets.token_bytes(32)
+
+
 def _cache_digest(api_key: str) -> str:
-    return hashlib.sha256(api_key.encode("utf-8")).hexdigest()
+    # Keyed with a per-process random secret; the digest is only an in-memory cache key.
+    return hmac.new(_CACHE_HMAC_KEY, api_key.encode("utf-8"), hashlib.sha256).hexdigest()
 
 
 def _cache_get(digest: str) -> Optional[bool]:

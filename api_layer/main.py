@@ -310,8 +310,8 @@ async def reject_spoofed_ip_headers(request: Request, call_next):
         request.state.claimed_ip = None
         request.state.real_client_ip = client_ip
         logger.info(
-            "[IP] trusted proxy %s → client IP resolved as %s (cf-connecting-ip present=%s)",
-            real_ip, client_ip, "cf-connecting-ip" in request.headers,
+            "[IP] request from trusted proxy; client IP resolved (cf-connecting-ip present=%s)",
+            "cf-connecting-ip" in request.headers,
         )
     else:
         claimed = _claimed_forwarded_ip(request)
